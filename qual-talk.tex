@@ -1,0 +1,457 @@
+\documentclass{beamer}
+
+\usepackage{beamerthemesplit}
+\usepackage{graphicx}
+\usepackage{color, natbib, hyperref}
+\usepackage{bibentry}
+\nobibliography*
+
+% define colors
+\definecolor{jblue}  {RGB}{20,50,100}
+\definecolor{ngreen} {RGB}{98,158,31}
+
+%theme
+
+\usetheme{boxes} 
+%\usecolortheme{seahorse} 
+\setbeamertemplate{items}[default] 
+%\setbeamercovered{transparent}
+\setbeamertemplate{blocks}[rounded]
+\setbeamertemplate{navigation symbols}{} 
+% set the basic colors
+\setbeamercolor{palette primary}   {fg=black,bg=white}
+\setbeamercolor{palette secondary} {fg=black,bg=white}
+\setbeamercolor{palette tertiary}  {bg=jblue,fg=white}
+\setbeamercolor{palette quaternary}{fg=black,bg=white}
+\setbeamercolor{structure}{fg=jblue}
+\setbeamercolor{titlelike}         {bg=jblue,fg=white}
+\setbeamercolor{frametitle}        {bg=jblue!10,fg=jblue}
+\setbeamercolor{cboxb}{fg=black,bg=jblue}
+\setbeamercolor{cboxr}{fg=black,bg=red}
+
+% reduce space before/after equations
+\expandafter\def\expandafter\normalsize\expandafter{%
+    \normalsize
+    \setlength\abovedisplayskip{1pt}
+    \setlength\belowdisplayskip{1pt}
+    \setlength\abovedisplayshortskip{1pt}
+    \setlength\belowdisplayshortskip{1pt}
+}
+
+% set colors for itemize/enumerate
+\setbeamercolor{item}{fg=ngreen}
+\setbeamercolor{item projected}{fg=white,bg=ngreen}
+
+% set colors for blocks
+\setbeamercolor{block title}{fg=ngreen,bg=white}
+\setbeamercolor{block body}{fg=black,bg=jblue!10}
+
+% set colors for alerted blocks (blocks with frame)
+\setbeamercolor{block alerted title}{fg=white,bg=jblue}
+\setbeamercolor{block alerted body}{fg=black,bg=jblue!10}
+\setbeamercolor{block alerted title}{fg=white,bg=dblue!70} % Colors of the highlighted block titles
+\setbeamercolor{block alerted body}{fg=black,bg=dblue!10} % Colors of the body of highlighted blocks
+
+% set the fonts
+\usefonttheme{professionalfonts}
+
+\setbeamerfont{section in head/foot}{series=\bfseries}
+\setbeamerfont{block title}{series=\bfseries}
+\setbeamerfont{block alerted title}{series=\bfseries}
+\setbeamerfont{frametitle}{series=\bfseries}
+\setbeamerfont{frametitle}{size=\Large}
+\setbeamerfont{block body}{series=\mdseries}
+\setbeamerfont{caption}{series=\mdseries}
+\setbeamerfont{headline}{series=\mdseries}
+
+
+% set some beamer theme options
+\setbeamertemplate{title page}[default][colsep=-4bp,rounded=true]
+\setbeamertemplate{sections/subsections in toc}[square]
+\setbeamertemplate{items}[circle]
+\setbeamertemplate{blocks}[width=0.0]
+\beamertemplatenavigationsymbolsempty
+
+% Making a DAG
+\usepackage{tkz-graph}  
+\usetikzlibrary{shapes.geometric}
+\usetikzlibrary{positioning}
+\tikzstyle{VertexStyle} = [shape            = rectangle,
+                               minimum width    = 6ex,%
+                               draw]
+ \tikzstyle{EdgeStyle}   = [->,>=stealth']      
+
+% Define block styles
+\tikzstyle{f} = [rectangle, draw, fill=blue!20, 
+    text width=3em, text badly centered, node distance=1.75cm]
+\tikzstyle{message} = [rectangle, draw, fill=green!20, 
+    text width=3em, text centered]
+\tikzstyle{io} = [draw, circle,fill=red!20, node distance=2cm,
+    minimum height=2em]
+\tikzstyle{line} = [draw, -latex']
+
+% Math macros
+\newcommand{\cD}{{\mathcal D}}
+\newcommand{\cF}{{\mathcal F}}
+\newcommand{\todo}[1]{{\color{red}{TO DO: \sc #1}}}
+
+\newcommand{\reals}{\mathbb{R}}
+\newcommand{\integers}{\mathbb{Z}}
+\newcommand{\naturals}{\mathbb{N}}
+\newcommand{\rationals}{\mathbb{Q}}
+
+\newcommand{\ind}[1]{1_{#1}} % Indicator function
+\newcommand{\pr}{\mathbb{P}} % Generic probability
+\newcommand{\ex}{\mathbb{E}} % Generic expectation
+\newcommand{\var}{\textrm{Var}}
+\newcommand{\cov}{\textrm{Cov}}
+
+\newcommand{\normal}{N} % for normal distribution (can probably skip this)
+\newcommand{\eps}{\varepsilon}
+\newcommand\independent{\protect\mathpalette{\protect\independenT}{\perp}}
+\def\independenT#1#2{\mathrel{\rlap{$#1#2$}\mkern2mu{#1#2}}}
+
+\newcommand{\convd}{\stackrel{d}{\longrightarrow}} % convergence in distribution/law/measure
+\newcommand{\convp}{\stackrel{P}{\longrightarrow}} % convergence in probability
+\newcommand{\convas}{\stackrel{\textrm{a.s.}}{\longrightarrow}} % convergence almost surely
+
+\newcommand{\eqd}{\stackrel{d}{=}} % equal in distribution/law/measure
+\newcommand{\argmax}{\arg\!\max}
+\newcommand{\argmin}{\arg\!\min}
+
+\newcommand{\bit}{\begin{itemize}}
+\newcommand{\eit}{\end{itemize}}
+
+
+\mode<presentation>
+
+\title[Simple Random Sampling: Not So Simple]{Simple Random Sampling: Not So Simple}
+\author{Kellie Ottoboni \\ with Philip B.~Stark and Ron Rivest}
+\institute[]{Department of Statistics, UC Berkeley\\Berkeley Institute for Data Science}
+\date{Qualifying Exam \\ January 23, 2017}
+
+\begin{document}
+
+\frame{
+\titlepage
+\vfill
+\begin{columns}[T]
+\begin{column}{.5\textwidth}
+\begin{center}
+\vspace{25pt}
+\includegraphics[width=\textwidth]{fig/logo/dept1.pdf}
+\end{center}
+\end{column}
+\begin{column}{.3\textwidth}
+\begin{center}
+\end{center}
+\end{column}
+\begin{column}{.3\textwidth}
+\begin{center}
+\includegraphics[width=0.9\textwidth]{fig/logo/BIDS.png}
+\end{center}
+\end{column}
+\end{columns}
+}
+
+
+
+\section[Introduction]{Introduction}
+
+\frame{
+\frametitle{Cute baby}
+
+}
+
+\frame{
+\frametitle{Scary werewolf}
+}
+
+
+%\frame
+%{
+%  \frametitle{PRNGs}
+%  
+%  \textbf{Pseudorandom number generator:} a deterministic algorithm that produces sequences that are computationally indistinguishable from the uniform distribution
+%%\begin{center}
+%%\begin{itemize}
+%%\item \textbf{Simple random sampling:} drawing $k \le n$ items from a population of $n$ items, in such a way that each of the $n \choose k$ subsets of size $k$ is equally likely.
+%%\item Difficult to obtain truly random samples. Instead, use \textbf{pseudorandom number generators (PRNGs)} to select items
+%%\item \textbf{Pseudorandom}: computationally indistinguishable from the uniform distribution
+%%\end{itemize}
+%%\end{center}
+%%
+%%Good PRNGs produce pseudorandom sequences. Do they give simple random samples with equal probabilities?
+%
+%}
+
+\frame{
+\frametitle{Pigeons and Pigeonholes}
+
+\begin{theorem}[Pigeonhole Principle]
+If there are $n$ pigeonholes and $m>n$ pigeons, then there exists at least one pigeonhole containing more than one pigeon.
+\end{theorem}
+\begin{figure}[htbp]
+\begin{center}
+\includegraphics[width = .3\textwidth]{fig/TooManyPigeons.jpg}
+\end{center}
+\tiny \href{https://commons.wikimedia.org/w/index.php?curid=4658682}{(Wikipedia)}
+\end{figure}
+
+\pause
+\begin{corollary}[Too few pigeons]
+If ${n \choose k}$ is greater than the size of a PRNG's state space, then the PRNG cannot possibly generate all samples of size $k$ from a population of $n$.
+\end{corollary}
+}
+
+
+\frame{
+\frametitle{Pigeons and Pigeonholes}
+
+Does it matter in practice? 
+\pause
+
+\vspace{20pt}
+
+Period of 32-bit linear congruential generators (e.g. RANDU): $2^{32} \approx 4 \times 10^9$ \\
+Samples of size $10$ from $50$: ${50 \choose 10} \approx 10^{10}$ \\
+\textbf{More than half of samples cannot be generated}
+\vspace{20pt}
+\pause
+
+Period of Mersenne Twister (standard PRNG in Statistics): $2^{32 \times 624} \approx 2 \times 10^{6010}$ \\
+Permutations of $2084$ objects: $2084! \approx 3 \times 10^{6013}$\\
+\textbf{Less than $0.01\%$ of permutations can be generated}
+
+
+}
+
+
+\frame{
+\frametitle{Impossibility bounds}
+}
+
+\frame{
+\frametitle{Simulation showing nonuniformity of MT}
+}
+
+\section[Sampling algorithms]{Sampling Algorithms}
+
+\frame{
+\frametitle{PIKK}
+\bit
+\item Show algorithm
+\item which software uses PIKK?
+\eit
+}
+
+\frame{
+\frametitle{Better algorithms}
+
+}
+
+\frame{
+\frametitle{Sampling simulations with MT}
+
+}
+
+\section[PRNGs]{Pseudorandom Number Generators}
+
+\frame{
+\frametitle{What makes a PRNG}
+
+\bit
+\item Fast and memory efficient
+\item Mimics a random sequence (statistically indistinguishable)
+\item Unpredictable. this is different from random - if it's deterministic, then it's predictable to some degree
+\item Jump-ahead feature so we can efficiently skip random numbers, generate multiple streams for paraellel applications
+\eit
+}
+
+
+
+\frame{
+\frametitle{Linear Congruential Generators}
+Explain
+}
+
+\frame{
+\frametitle{The good, the bad, and the ugly}
+\begin{block}{(Knuth, 1997)}
+``Random numbers should not be generated with a method chosen at random.''
+\end{block}
+\pause
+
+
+\begin{figure}[htbp]
+\begin{center}
+\includegraphics[width = 0.4\textwidth]{fig/randu.png}
+\end{center}
+     Triples of RANDU lie on 15 planes in 3D space \\ 
+     $x_{n+1} = (65539 x_{n}) \mod 2^{31}$ \\
+\footnotesize{(Wikipedia)}
+\end{figure}
+}
+
+\frame{
+\frametitle{Linear Congruential Generators}
+\bit
+\item Fast to compute
+\item Some are more random than others - show constants, RANDU
+\item Not unpredictable. We only need 2 values to determine the constants
+\item Possible to do jump ahead
+\eit
+}
+
+
+
+\frame{
+\frametitle{Mersenne Twister}
+explain. state of the art in statistics
+}
+
+\frame{
+\frametitle{Mersenne Twister}
+\bit
+\item Fast to compute but has a large state space, not the most memory efficient
+\item Random to a good degree
+\item Completely predictable after we've seen 623 values
+\item No good jump ahead feature
+\eit
+}
+
+
+
+\frame{
+\frametitle{A better alternative}
+
+\textbf{One solution:} Find a class of PRNGs with infinite state space
+}
+
+\frame{
+\frametitle{Hash function PRNGs}
+
+Describe how hash functions work
+
+\begin{center}
+\resizebox{10cm}{!}{    
+\begin{tikzpicture}[node distance = 1cm, auto, scale = 0.5]
+    % Place nodes
+    \node [io] (IV) {IV};
+    \node [f, right of=IV] (f1) {f};
+    \node [f, right of=f1] (f2) {f};
+%    \node [f, right of=f2, minimum width = 0cm, height = 0cm] (invisible) {};
+    \node [f, right of=f2, node distance=3cm] (fn1) {f};
+    \node [f, right of=fn1] (fend) {f};
+%    \node [f, right of=invisible, node distance=3cm] (fend) {f};
+    \node [f, right of=fend] (g) {g};
+    \node [io, right of=g] (hx) {$h(x)$};
+    \node [message, above of=f1] (m1) {$x_1$};
+    \node [message, above of=f2] (m2) {$x_2$};
+    \node [message, above of=fn1] (mn1) {$x_{n-1}$};
+    \node [message, above of=fend] (mend) {$x_n$};
+    \node [message, above right = of m1, above left = of mend, minimum width = 5cm] (message) {$x$};
+    % Draw edges
+    \path [line] (IV) -- (f1);
+    \path [line] (f1) -- (f2);
+    \path [line] (message) -- (m1);
+    \path [line] (message) -- (m2);
+    \path [line] (message) -- (mn1);
+    \path [line] (message) -- (mend);
+    \draw [-,dotted] (m2) -- (mn1);
+    \path [line] (m1) -- (f1);
+    \path [line] (m2) -- (f2);
+     \path [line] (mn1) -- (fn1);
+    \path [line] (mend) -- (fend);
+    \path [line] (fend) -- (g);
+    \path [line,dashed] (f2) -- (fn1);
+    \path [line] (fn1) -- (fend);
+    \path [line] (g) -- (hx);
+\end{tikzpicture}
+}
+\end{center}
+
+
+Cryptographic hash functions:
+\begin{itemize}
+\item computationally infeasible to invert
+\item difficult to find two inputs that map to the same output
+\item small input changes produce large, unpredictable changes to output
+\item resulting bits are uniformly distributed
+\end{itemize}
+
+}
+
+
+\frame{
+\frametitle{Hash function PRNGs}
+Describe procedure with counter
+\bit
+\item Fast: depends on well-tested hash function code. Number of hashes may slow it down, with the benefit of adding more unpredictability.
+\item Memory efficient: Store a seed and a counter -- just like 25 digits
+\item Unpredictable: small changes to input produce large unpredictable changes to output. The only way to figure out the sequence is to know the hashing function
+\item Jump ahead: just add to the counter.
+\eit
+}
+
+\section[Results]{Results}
+
+\frame{
+\frametitle{Simulations}
+\bit
+\item Compare PIKK/good sampling algo, MT/CSPRNG/LCG/KISS, different seeds
+\item For the unique sample frequencies, report
+\bit
+\item Range statistic p-value
+\item Chi-squared test p-value
+\eit
+\item Do this for various numbers of samples - 1e6 up to 1e8. This relates to equidistribution
+\eit
+}
+
+
+\frame{
+\frametitle{Choice of seed}
+
+Preliminary results: the distribution of simple random samples is less uniform if you use a stupid seed
+
+\begin{table}[htdp]
+\begin{center}
+\begin{tabular}{r|c|c|}
+ & $p$-value& $p$-value\\
+PRNG &  (seed = 100) &  (seed = 233424280) \\
+\hline
+RANDU & 0  & 0 \\
+Super-Duper LCG & 0.1798 & 1 \\
+Mersenne Twister*  & 0.0858 & 0.4741 \\
+Mersenne Twister & 0.1996 & 0.6143 \\
+SHA-256 PRNG & 0.1710 & 0.8584
+\end{tabular}
+\end{center}
+\label{default}
+\end{table}%
+
+\small{* using \texttt{np.random.choice} to sample}
+
+}
+
+
+
+\frame{
+\frametitle{Open questions}
+\begin{itemize}
+\itemsep10pt
+\item Do ``good'' PRNGs produce all samples with equal probability? All permutations?
+\pause
+\item Do departures from uniformity introduce bias?
+\pause
+\item Replace the default PRNGs in Python
+\url{https://www.github.com/statlab/cryptorandom}
+\pause
+\item Results apply more broadly to computer simulations: permutation tests, bootstrapping, MCMC, etc.
+\end{itemize}
+
+}
+
+
+\end{document}
