@@ -489,16 +489,27 @@ The period of an LCG is $m$ for all seeds $X_0$ if and only if
 
 
 \frame{
-\frametitle{Mersenne Twister}
-explain. state of the art in statistics
+\frametitle{Mersenne Twister (\cite{matsumoto_mersenne_1998})}
+\todo{Find a diagram of a linear feedback shift register. Something super simple
+% http://cs.stackexchange.com/questions/43707/period-of-a-pseudo-random-sequence-generated-using-an-lfsr
+% http://www.actel.com/kb/print.aspx?id=SL1207
+}
+
+\bit
+\item A ``twisted'' generalized linear feedback shift register: a complicated sequence of bitwise and linear operations
+\item Enormous period of $2^{19937} - 1$, a Mersenne prime
+\item $k$-distributed to 32-bit accuracy for $1 \leq k \leq 623$, i.e. tuples of up to length $623$ occur with equal frequency over the entire period
+\item Integer seed is used to set the state, a $624 \times 32$ binary matrix
+\item Generally considered good enough for Statistics, but fails some TestU01 tests
+\eit 
 }
 
 \frame{
 \frametitle{Mersenne Twister}
 \bit
 \item Fast to compute but has a large state space, not the most memory efficient
-\item Random to a good degree
-\item Completely predictable after we've seen 623 values
+\item Random to a good degree, but fails the \todo{which test?}
+\item Completely predictable after we've seen 624 values
 \item No good jump ahead feature
 \eit
 }
@@ -513,8 +524,7 @@ explain. state of the art in statistics
 
 \frame{
 \frametitle{Hash function PRNGs}
-
-Describe how hash functions work
+\textbf{Hash functions} take in a message $x$ of arbitrary length and return a value $h(x)$ of fixed size (e.g. 256 bits)
 
 \begin{center}
 \resizebox{10cm}{!}{    
@@ -568,12 +578,24 @@ Cryptographic hash functions:
 
 \frame{
 \frametitle{Hash function PRNGs}
-Describe procedure with counter
+Procedure for using a cryptographic hash function as PRNG:
+\begin{enumerate}
+\item Set a seed, a large random integer
+\item Set the counter to $0$
+\item Set the state to be ``seed,counter''
+\item Hash the state value. This is your random number.
+\item Increment the counter
+\item Repeat Steps 2-5 as many times as needed
+\end{enumerate}
+}
+
+\frame{
+\frametitle{Hash function PRNGs}
 \bit
-\item Fast: depends on well-tested hash function code. Number of hashes may slow it down, with the benefit of adding more unpredictability.
-\item Memory efficient: Store a seed and a counter -- just like 25 digits
+\item Efficient: based on fast, pre-existing hash function code
+\item Memory efficient: only need to store the seed and counter
 \item Unpredictable: small changes to input produce large unpredictable changes to output. The only way to figure out the sequence is to know the hashing function
-\item Jump ahead: just add to the counter.
+\item Jump ahead: add the desired number of steps to the counter
 \eit
 }
 
@@ -635,6 +657,14 @@ SHA-256 PRNG & 0.1710 & 0.8584
 \end{itemize}
 
 }
+
+\begin{frame}
+\frametitle{References}
+\tiny
+\bibliographystyle{plainnat}
+\bibliography{refs}
+\itemize
+\end{frame}
 
 
 \end{document}
