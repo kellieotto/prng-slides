@@ -6,6 +6,11 @@
 \usepackage{bibentry}
 \nobibliography*
 
+% Algorithm environment
+\usepackage{algpseudocode,algorithm,algorithmicx}
+\newcommand*\Let[2]{\State #1 $\gets$ #2}
+
+
 % define colors
 \definecolor{jblue}  {RGB}{20,50,100}
 \definecolor{ngreen} {RGB}{98,158,31}
@@ -159,12 +164,30 @@
 \section[Introduction]{Introduction}
 
 \frame{
-\frametitle{Cute baby}
-
+\frametitle{Simple Random Sampling}
+\bit
+\item Sampling is at the heart of Statistics
+\bit
+\item Frequentist methods: uncertainty is quantified over theoretical repeated samples
+\item Surveys, audits: population is too large, so a representative sample is used instead
+\eit
+\item \textbf{Simple random sampling:} drawing $k$ objects from a group of $n$ in such a way that all $n\choose k$ possible subsets are equally likely
+\eit
 }
 
 \frame{
-\frametitle{Scary werewolf}
+\frametitle{Simple Random Sampling}
+In practice, it is difficult to draw truly random samples.
+\vspace{20pt}
+
+Instead, people tend to draw samples using
+\bit
+\item A \textbf{pseudo-random number generator} (PRNG) 
+\item An algorithm that maps a set of pseudo-random numbers into a subset of the population
+\eit
+\vspace{20pt}
+
+Statisticians take for granted that this procedure is a sufficient approximation to simple random sampling.
 }
 
 
@@ -229,29 +252,174 @@ Permutations of $2084$ objects: $2084! \approx 3 \times 10^{6013}$\\
 
 \frame{
 \frametitle{Impossibility bounds}
+Let $F$ be the uniform distribution on all samples of size $k$ from a population of $n$.
+For some subset of samples $S$,
+define $\mathcal{G} = \{ G: G(S) = 0, S \in \mathcal{S}\}$ and $\nu = \lvert S \rvert$.
+
+
+\begin{lemma}
+For any $G \in \mathcal{G}$, $ \lVert F - G \rVert_1 \geq \frac{2\nu}{{n \choose k}}$
+\end{lemma}
+
+
+For any bounded function $\psi: \Omega \to \reals$ and for any $G \in \mathcal{G}$,
+
+$$\left\lvert \int \psi dG - \int \psi dF \right\rvert \leq \lVert F - G \rVert_1 \lVert \psi \rVert_\infty$$
+
+
+\begin{corollary}
+There exists a statistic $\psi$ such that
+
+$$\left\lvert  \ex_F(\psi) - \ex_G(\psi) \right\rvert \geq  \frac{2\nu \lVert \psi \rVert_\infty}{{n \choose k}}$$
+\end{corollary}
+
+
 }
 
 \frame{
-\frametitle{Simulation showing nonuniformity of MT}
+\frametitle{Bad seeds}
+
+\bit
+\item \textbf{Seed}: an initial value to set the state of a PRNG
+\item The choice of seed matters:
+\bit
+\item Mersenne Twister has problems with seeds with too many zeros \todo{CITE}
+\item LCGs may not achieve their full period with certain seeds \todo{CITE}
+\eit
+\eit
+
+\begin{figure}[htbp]
+\begin{center}
+\includegraphics[width = 0.8\textwidth]{fig/bad-seeds.pdf}
+\end{center}
+\footnotesize{$10^5$ samples of size $2$ from a population of $30$ (Mersenne Twister in R)}
+\end{figure}
+}
+
+\frame{
+\frametitle{Outline}
+\bit
+\item Better sampling algorithms - resevoir methods
+\item Better PRNGs - cryptographic hash functions
+\eit
 }
 
 \section[Sampling algorithms]{Sampling Algorithms}
 
 \frame{
-\frametitle{PIKK}
+\frametitle{General idea}
+
+There are two general strategies for sampling algorithms:
 \bit
-\item Show algorithm
-\item which software uses PIKK?
+\item ``Shuffle the deck'' and take the top $k$ as the sample
+\item Number the population, select $k$ random integers, and sample the corresponding items
 \eit
 }
 
 \frame{
-\frametitle{Better algorithms}
+\frametitle{PIKK}
+\begin{algorithm}[H]                      % enter the algorithm environment
+\caption{PIKK: Permute indices and keep $k$}          % give the algorithm a caption
+\label{PIKK}                           % and a label for \ref{} commands later in the document
+\begin{algorithmic}[1]             % enter the algorithmic environment
+     \State{Assign IID uniform values on $[0,1]$ to the $n$ elements of the population}
+     \State{Sort the population according to these values (break ties randomly)}
+     \State{Take the top $k$ to be the sample}
+\end{algorithmic}
+\end{algorithm}
 
+\bit
+%\item Used for sampling in \todo{Stata? can't find the source code or algorithm}
+\item Relies on assumption that all permutations are equally likely
+\item Inefficient: requires $n$ PRNs and $O(n\log n)$ sorting operation
+\item Sort: Stata uses a random sort function to break ties! Not reproducible! \todo{cite http://www.stata-journal.com/sjpdf.html?articlenum=dm0019}
+\eit
+
+}
+
+
+
+
+\frame{
+\frametitle{Shuffling algorithms}
+\bit
+\item Knuth shuffle: requires $n-1$ random integers, but no sorting.
+\begin{algorithm}[H]                      % enter the algorithm environment
+\caption{Fisher-Yates-Knuth-Durstenfeld shuffle}          % give the algorithm a caption
+\label{FYKD}                           % and a label for \ref{} commands later in the document
+\begin{algorithmic}[1]               % enter the algorithmic environment
+\For{$i = 2, \dots, n$}
+    \Let{$J$}{random integer uniformly distributed on $1, \dots, i$}
+    \Let{$(a[J], a[i])$}{$(a[i], a[J])$}
+\EndFor
+\State{Take the first $k$ to be the sample}
+\end{algorithmic}
+\end{algorithm}
+\todo{put proof that shuffle works in appendix}
+\item Resevoir algorithms: Algorithm R (Waterman, Knuth 1997), Algorithm Z (Vitter 1985) are related to shuffling and don't require knowing the population size a priori
+\eit
+}
+
+
+\frame{
+\frametitle{Using random integers}
+\begin{algorithm}[H]                      % enter the algorithm environment
+\caption{Uniform random integers}          % give the algorithm a caption
+\label{uri}                           % and a label for \ref{} commands later in the document
+\begin{algorithmic}[1]             % enter the algorithmic environment
+\Let{$\tilde{n}$}{$n$}
+\Let{Population indices}{$\{1, \dots, n\}$}
+\For{$i = 1, \dots, k$}
+%     \Let{$w$}{a uniform PRN on $[0, 1)$}
+%     \Let{$j$}{Element in the $\lfloor\tilde{n}w\rfloor + 1$ space in Population indices}
+     \Let{$w$}{A random integer on $\{1, \dots, \tilde{n}\}$}
+     \Let{$j$}{The $w$th element in Population indices}
+     \Let{Sample indices}{Sample indices $\cup \{j\}$}
+     \Let{Population indices}{Put last remaining index in place $j$}
+     \Let{$\tilde{n}$}{$\tilde{n}-1$}
+\EndFor
+\State{Take the items with selected Sample indices}
+\end{algorithmic}
+\end{algorithm}
+
+\bit
+\item Method used by R \texttt{sample}, Python \texttt{random.sample}
+\item More efficient: uses only $k$ PRNs and no sorting
+\eit
+}
+
+
+\frame{
+\frametitle{Generating (non)uniform integers}
+\bit
+\item Algorithm 2 relies on uniformly distributed integers
+\item A common way to get integers in the range $\{1, \dots, m\}$ is $X = \lfloor m U\rfloor + 1$, $U \sim U[0,1)$.
+%\bit
+%\item $U$ is uniform on $\{0, 2^{-w}, 2\times 2^{-w}, \dots, (2^w - 1)\times2^{-w}\}$
+%\item $mU$ is uniform on $\{0, m2^{-w}, 2m\times 2^{-w}, \dots, (2^w - 1)m\times2^{-w}\}$
+%\eit
+\item Unless $m$ is a multiple of $2^w$, $\lfloor mU \rfloor$ will not truly be uniform!
+\eit
+
+\begin{lemma}
+For $m < 2^w$, the ratio of the largest to smallest selection probability is, to first order,  $1+ m 2^{-w}$. (See, e.g., Knuth v2 3.4.1.A.)
+\end{lemma}
+\todo{proper citation, put proof in appendix}
+}
+
+\frame{
+\frametitle{Generating (non)uniform integers}
+A better way to generate integers on $\{1, \dots, m\}$:
+\bit
+\item Let $w = \lfloor \log_2 m \rfloor + 1$
+\item Generate a $w$-bit integer $J$
+\item If $J > m$, discard and repeat.
+\eit
 }
 
 \frame{
 \frametitle{Sampling simulations with MT}
+\todo{Code up all of the sampling algorithms for Python with numpy.random. Compare how uniform samples are, using the same seed.}
 
 }
 
@@ -264,7 +432,7 @@ Permutations of $2084$ objects: $2084! \approx 3 \times 10^{6013}$\\
 \item Fast and memory efficient
 \item Mimics a random sequence (statistically indistinguishable)
 \item Unpredictable. this is different from random - if it's deterministic, then it's predictable to some degree
-\item Jump-ahead feature so we can efficiently skip random numbers, generate multiple streams for paraellel applications
+\item Jump-ahead feature so we can efficiently skip random numbers, generate multiple streams for parallel applications
 \eit
 }
 
@@ -272,7 +440,21 @@ Permutations of $2084$ objects: $2084! \approx 3 \times 10^{6013}$\\
 
 \frame{
 \frametitle{Linear Congruential Generators}
-Explain
+LCGs have the form
+$$ X_{n+1} = (a X_n + c) \mod m$$
+
+Smart choices of $a$,$c$, and $m$ can make the LCG fast to compute and more or less random
+
+\begin{theorem}[Hull-Dobell Full Period Theorem]
+\label{thm:hull_dobell_period}
+The period of an LCG is $m$ for all seeds $X_0$ if and only if
+\begin{itemize}
+\item $m$ and $c$ are relatively prime,
+\item $a-1$ is divisible by all prime factors of $m$, and
+\item $a-1$ is divisible by 4 if $m$ is divisible by 4.
+\end{itemize}
+\end{theorem}
+
 }
 
 \frame{
@@ -281,6 +463,7 @@ Explain
 ``Random numbers should not be generated with a method chosen at random.''
 \end{block}
 \pause
+\citet{marsaglia_random_1968} proved that $n$-tuples of numbers generated by any LCG will lie on parallel hyperplanes, making them especially non-random.
 
 
 \begin{figure}[htbp]
@@ -296,10 +479,10 @@ Explain
 \frame{
 \frametitle{Linear Congruential Generators}
 \bit
-\item Fast to compute
-\item Some are more random than others - show constants, RANDU
-\item Not unpredictable. We only need 2 values to determine the constants
-\item Possible to do jump ahead
+\item Fast to compute and requires little memory
+\item Some LCGs are more random than others -- depends on choosing good constants
+\item Not unpredictable. We only need 2 values to determine the constants.
+\item Possible to do jump ahead using mathematical formulas.
 \eit
 }
 
