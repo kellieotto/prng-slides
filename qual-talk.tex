@@ -79,6 +79,7 @@
 
 % Making a DAG
 \usepackage{tkz-graph}  
+\usetikzlibrary{calc}
 \usetikzlibrary{shapes.geometric}
 \usetikzlibrary{positioning}
 \tikzstyle{VertexStyle} = [shape            = rectangle,
@@ -490,10 +491,39 @@ The period of an LCG is $m$ for all seeds $X_0$ if and only if
 
 \frame{
 \frametitle{Mersenne Twister (\cite{matsumoto_mersenne_1998})}
-\todo{Find a diagram of a linear feedback shift register. Something super simple
-% http://cs.stackexchange.com/questions/43707/period-of-a-pseudo-random-sequence-generated-using-an-lfsr
-% http://www.actel.com/kb/print.aspx?id=SL1207
+
+
+
+\begin{center}
+\resizebox{10cm}{!}{    
+\begin{tikzpicture}[node distance = 2cm, auto, scale = 0.25]
+    % Place nodes
+    \node [message] (m3) {$x_2$};
+    \node [message, left of=m3] (m2) {$x_1$};
+    \node [message, left of=m2] (m1) {$x_0$};
+    \node [message, right of=m3, node distance=3cm] (mn1) {$x_{622}$};
+    \node [message, right of=mn1] (mend) {$x_{623}$};
+    \node [f, below of=m3, node distance = 1cm, minimum width = 5cm] (f) {Tempering};
+    \node [io, below of = f, node distance = 1.5cm](output){Output};
+    % Draw box around GLFSR
+    \draw ($(m1.north west)+(-3,3)$)  rectangle ($(mend.south east)+(3,-0.5)$);
+    % Draw edges
+    \path [line] (m1) -- (m2);
+    \path [line] (m2) -- (m3);
+%    \path [line] (m1) -- (f);
+%    \path [line] (m2) -- (f);
+%    \path [line] (m3) -- (f);
+%     \path [line] (mn1) -- (f);
+%    \path [line] (mend) -- (f);
+    \path [line,dashed] (m3) -- (mn1);
+    \path [line] (mn1) -- (mend);
+    \path [line] (f) -- (output);
+    \draw[->, every node/.style={font=\sffamily\small}] (mend.north) -- ($(mend)+(0,2)$) -- ($(m1)+(0,2)$) node[above, pos=0.8] {GLFSR} -- (m1.north) ;
+    \draw[->, every node/.style={font=\sffamily\small}] ($(mend.east)+(3,1)$) -- ($(mend.east)+(4,1)$) -- ($(mend.east)+(4,-4)$) -- (f.east) ;
+
+\end{tikzpicture}
 }
+\end{center}
 
 \bit
 \item A ``twisted'' generalized linear feedback shift register: a complicated sequence of bitwise and linear operations
@@ -526,17 +556,16 @@ The period of an LCG is $m$ for all seeds $X_0$ if and only if
 \frametitle{Hash function PRNGs}
 \textbf{Hash functions} take in a message $x$ of arbitrary length and return a value $h(x)$ of fixed size (e.g. 256 bits)
 
+
 \begin{center}
 \resizebox{10cm}{!}{    
 \begin{tikzpicture}[node distance = 1cm, auto, scale = 0.5]
     % Place nodes
-    \node [io] (IV) {IV};
+    \node[io] (IV) {IV};
     \node [f, right of=IV] (f1) {f};
     \node [f, right of=f1] (f2) {f};
-%    \node [f, right of=f2, minimum width = 0cm, height = 0cm] (invisible) {};
     \node [f, right of=f2, node distance=3cm] (fn1) {f};
     \node [f, right of=fn1] (fend) {f};
-%    \node [f, right of=invisible, node distance=3cm] (fend) {f};
     \node [f, right of=fend] (g) {g};
     \node [io, right of=g] (hx) {$h(x)$};
     \node [message, above of=f1] (m1) {$x_1$};
@@ -563,8 +592,6 @@ The period of an LCG is $m$ for all seeds $X_0$ if and only if
 \end{tikzpicture}
 }
 \end{center}
-
-
 Cryptographic hash functions:
 \begin{itemize}
 \item computationally infeasible to invert
