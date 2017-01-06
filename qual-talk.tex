@@ -164,16 +164,35 @@
 
 \section[Introduction]{Introduction}
 
+
+\frame{
+\begin{figure}[htbp]
+\begin{center}
+\includegraphics[height = .8\textheight]{fig/book}
+\end{center}
+\end{figure}
+}
+
 \frame{
 \frametitle{Simple Random Sampling}
-\bit
-\item Sampling is at the heart of Statistics
-\bit
-\item Frequentist methods: uncertainty is quantified over theoretical repeated samples
-\item Surveys, audits: population is too large, so a representative sample is used instead
-\eit
-\item \textbf{Simple random sampling:} drawing $k$ objects from a group of $n$ in such a way that all $n\choose k$ possible subsets are equally likely
-\eit
+\textbf{Simple random sampling:} drawing $k$ objects from a group of $n$ in such a way that all $n\choose k$ possible subsets are equally likely \\
+\vspace{15pt}
+
+If there is a problem generating SRSs, it will be even worse for other methods: permutation, bootstrap samples, MCMC, Monte Carlo integration...
+
+\begin{table}[htdp]
+{Number of possibilities for $n = 100$, $k = 50$}
+\begin{center}
+\begin{tabular}{l|c|c}
+\hline
+SRSs & $n \choose k$ & ${100 \choose 50} \approx 10^{29}$ \\
+Bootstrap Samples& $n^k$ & $100^{50} = 10^{100}$ \\
+Permutations & $n!$ & $100! \approx 10^{158}$ \\
+\hline 
+\end{tabular}
+\end{center}
+\end{table}%
+
 }
 
 \frame{
@@ -183,32 +202,13 @@ In practice, it is difficult to draw truly random samples.
 
 Instead, people tend to draw samples using
 \bit
-\item A \textbf{pseudo-random number generator} (PRNG) 
-\item An algorithm that maps a set of pseudo-random numbers into a subset of the population
+\item A \textbf{pseudorandom number generator} (PRNG) 
+\item An algorithm that maps a set of pseudorandom numbers into a subset of the population
 \eit
 \vspace{20pt}
 
-Statisticians take for granted that this procedure is a sufficient approximation to simple random sampling.
+Most people take for granted that this procedure is a sufficient approximation to simple random sampling.
 }
-
-
-%\frame
-%{
-%  \frametitle{PRNGs}
-%  
-%  \textbf{Pseudorandom number generator:} a deterministic algorithm that produces sequences that are computationally indistinguishable from the uniform distribution
-%%\begin{center}
-%%\begin{itemize}
-%%\item \textbf{Simple random sampling:} drawing $k \le n$ items from a population of $n$ items, in such a way that each of the $n \choose k$ subsets of size $k$ is equally likely.
-%%\item Difficult to obtain truly random samples. Instead, use \textbf{pseudorandom number generators (PRNGs)} to select items
-%%\item \textbf{Pseudorandom}: computationally indistinguishable from the uniform distribution
-%%\end{itemize}
-%%\end{center}
-%%
-%%Good PRNGs produce pseudorandom sequences. Do they give simple random samples with equal probabilities?
-%
-%}
-
 \frame{
 \frametitle{Pigeons and Pigeonholes}
 
@@ -246,74 +246,32 @@ Samples of size $10$ from $50$: ${50 \choose 10} \approx 10^{10}$ \\
 Period of Mersenne Twister (standard PRNG in Statistics): $2^{32 \times 624} \approx 2 \times 10^{6010}$ \\
 Permutations of $2084$ objects: $2084! \approx 3 \times 10^{6013}$\\
 \textbf{Less than $0.01\%$ of permutations can be generated}
-
-
 }
 
 
-\frame{
-\frametitle{Impossibility bounds}
-Let $F$ be the uniform distribution on all samples of size $k$ from a population of $n$.
-For some subset of samples $S$,
-define $\mathcal{G} = \{ G: G(S) = 0, S \in \mathcal{S}\}$ and $\nu = \lvert S \rvert$.
-
-
-\begin{lemma}
-For any $G \in \mathcal{G}$, $ \lVert F - G \rVert_1 \geq \frac{2\nu}{{n \choose k}}$
-\end{lemma}
-
-
-For any bounded function $\psi: \Omega \to \reals$ and for any $G \in \mathcal{G}$,
-
-$$\left\lvert \int \psi dG - \int \psi dF \right\rvert \leq \lVert F - G \rVert_1 \lVert \psi \rVert_\infty$$
-
-
-\begin{corollary}
-There exists a statistic $\psi$ such that
-
-$$\left\lvert  \ex_F(\psi) - \ex_G(\psi) \right\rvert \geq  \frac{2\nu \lVert \psi \rVert_\infty}{{n \choose k}}$$
-\end{corollary}
-
-
-}
-
-\frame{
-\frametitle{Bad seeds}
+\begin{frame}[label = pigeonhole]
+\frametitle{Pigeons and Pigeonholes}
+But does it \textit{really} matter in practice?
 
 \bit
-\item \textbf{Seed}: an initial value to set the state of a PRNG
-\item The choice of seed matters:
-\bit
-\item Mersenne Twister has problems with seeds with too many zeros \todo{CITE}
-\item LCGs may not achieve their full period with certain seeds \todo{CITE}
+\itemsep10pt
+\item Social applications may require the PRNG to produce all possible samples -- e.g. jury duty summons, gaming machines, lottery tickets (\cite{marsaglia_seeds_2003})
+\item Impossibility bounds show that this introduces a nontrivial amount of bias into statistics estimated from Monte Carlo distributions \hyperlink{impossibility_bounds}{\beamerbutton{here}}
 \eit
-\eit
+\end{frame}
 
-\begin{figure}[htbp]
-\begin{center}
-\includegraphics[width = 0.8\textwidth]{fig/bad-seeds.pdf}
-\end{center}
-\footnotesize{$10^5$ samples of size $2$ from a population of $30$ (Mersenne Twister in R)}
-\end{figure}
-}
-
-\frame{
-\frametitle{Outline}
-\bit
-\item Better sampling algorithms - resevoir methods
-\item Better PRNGs - cryptographic hash functions
-\eit
-}
 
 \section[Sampling algorithms]{Sampling Algorithms}
 
 \frame{
-\frametitle{General idea}
+\frametitle{Sampling Algorithms}
 
-There are two general strategies for sampling algorithms:
+Given a sequence of (pseudo)random numbers, how do we use them to draw a SRS? \\
+\vspace{15pt}
+Two general strategies:
 \bit
 \item ``Shuffle the deck'' and take the top $k$ as the sample
-\item Number the population, select $k$ random integers, and sample the corresponding items
+\item Number the population, select $k$ random integers, and take the corresponding items
 \eit
 }
 
@@ -344,7 +302,7 @@ There are two general strategies for sampling algorithms:
 \frame{
 \frametitle{Shuffling algorithms}
 \bit
-\item Knuth shuffle: requires $n-1$ random integers, but no sorting.
+\item Knuth shuffle: requires $n-1$ random integers, but no sorting. This is what \texttt{np.random.choice} does.
 \begin{algorithm}[H]                      % enter the algorithm environment
 \caption{Fisher-Yates-Knuth-Durstenfeld shuffle}          % give the algorithm a caption
 \label{FYKD}                           % and a label for \ref{} commands later in the document
@@ -357,7 +315,7 @@ There are two general strategies for sampling algorithms:
 \end{algorithmic}
 \end{algorithm}
 \todo{put proof that shuffle works in appendix}
-\item Resevoir algorithms: Algorithm R (Waterman, Knuth 1997), Algorithm Z (Vitter 1985) are related to shuffling and don't require knowing the population size a priori
+\item Reservoir algorithms: Algorithm R (Waterman, Knuth 1997), Algorithm Z (Vitter 1985) are related to shuffling and don't require knowing the population size a priori
 \eit
 }
 
@@ -376,7 +334,7 @@ There are two general strategies for sampling algorithms:
      \Let{$w$}{A random integer on $\{1, \dots, \tilde{n}\}$}
      \Let{$j$}{The $w$th element in Population indices}
      \Let{Sample indices}{Sample indices $\cup \{j\}$}
-     \Let{Population indices}{Put last remaining index in place $j$}
+     \Let{Population indices}{Put last remaining index in place $w$}
      \Let{$\tilde{n}$}{$\tilde{n}-1$}
 \EndFor
 \State{Take the items with selected Sample indices}
@@ -419,12 +377,52 @@ A better way to generate integers on $\{1, \dots, m\}$:
 }
 
 \frame{
-\frametitle{Sampling simulations with MT}
-\todo{Code up all of the sampling algorithms for Python with numpy.random. Compare how uniform samples are, using the same seed.}
+\frametitle{Sampling Algorithms}
+
+\bit
+\item Red: require $n$ PRNs
+\item Blue: require $k$ PRNs
+\item No straightforward pattern in how uniform the samples are
+\eit
+
+\begin{figure}[htbp]
+\begin{center}
+\includegraphics[width = .8\textwidth]{fig/sa-comparison}
+\end{center}
+\end{figure}
 
 }
 
 \section[PRNGs]{Pseudorandom Number Generators}
+
+
+\frame{
+\frametitle{Pseudorandomness}
+\begin{figure}[htbp]
+\begin{center}
+\includegraphics[width = .8\textwidth]{fig/dilbert}
+\end{center}
+\tiny \href{http://dilbert.com/strip/2001-10-25}{Dilbert}
+\end{figure}
+
+
+\textbf{Pseudorandom}: deterministic, but having the same relevant statistical properties as if random
+
+
+\bit
+\item Uniformity: Values and sequences of values should be equiprobable
+\item Independence: Lack of serial correlation, unpredictable
+\eit
+\pause
+PRNGs can't do this perfectly.
+\bit
+\item They are deterministic. Knowing input tells you the output.
+\item Most are \textbf{periodic}: they eventually produce the same sequence of values.
+\item They have some predictable mathematical structure.
+\eit
+}
+
+
 
 \frame{
 \frametitle{What makes a PRNG}
@@ -437,6 +435,36 @@ A better way to generate integers on $\{1, \dots, m\}$:
 \eit
 }
 
+
+
+\frame{
+\frametitle{Testing PRNGs}
+\todo{
+\bit
+\item List and cite test suites
+\item Describe a few interesting/important tests
+\item Argue that for statistical use, PRNGs should be able to produce samples uniformly and this ought to be a test
+\item Describe chi-squared test and range test
+\item Mention Spearman correlation test of permutations?
+\eit
+}}
+
+\frame{
+\frametitle{Bad seeds}
+\bit
+\item \textbf{Seed}: an initial value to set the internal state of a PRNG.
+\item Mersenne Twister has problems with seeds with too many zeros (\cite{saito_simd-oriented_2008})
+\item LCGs may not achieve their full period with certain seeds (\cite{park_random_1988})
+\eit
+
+\pause
+\begin{figure}[htbp]
+\begin{center}
+\includegraphics[width = 0.8\textwidth]{fig/bad-seeds.pdf}
+\end{center}
+\footnotesize{$10^5$ samples of size $2$ from a population of $30$ (Mersenne Twister in R)}
+\end{figure}
+}
 
 
 \frame{
@@ -530,7 +558,6 @@ The period of an LCG is $m$ for all seeds $X_0$ if and only if
 \item Enormous period of $2^{19937} - 1$, a Mersenne prime
 \item $k$-distributed to 32-bit accuracy for $1 \leq k \leq 623$, i.e. tuples of up to length $623$ occur with equal frequency over the entire period
 \item Integer seed is used to set the state, a $624 \times 32$ binary matrix
-\item Generally considered good enough for Statistics, but fails some TestU01 tests
 \eit 
 }
 
@@ -538,7 +565,7 @@ The period of an LCG is $m$ for all seeds $X_0$ if and only if
 \frametitle{Mersenne Twister}
 \bit
 \item Fast to compute but has a large state space, not the most memory efficient
-\item Random to a good degree, but fails the \todo{which test?}
+\item Generally considered ``random'' enough for Statistics, but fails some TestU01 tests
 \item Completely predictable after we've seen 624 values
 \item No good jump ahead feature
 \eit
@@ -630,59 +657,91 @@ Procedure for using a cryptographic hash function as PRNG:
 
 \frame{
 \frametitle{Simulations}
+\todo{
 \bit
-\item Compare PIKK/good sampling algo, MT/CSPRNG/LCG/KISS, different seeds
+\item Compare MT/CSPRNG/LCG with different seeds
 \item For the unique sample frequencies, report
 \bit
-\item Range statistic p-value
-\item Chi-squared test p-value
+\item Range statistic $p$-value
+\item Chi-squared test $p$-value
 \eit
-\item Do this for various numbers of samples - 1e6 up to 1e8. This relates to equidistribution
+\item Do this for various numbers of samples - 1e6 up to 1e8. How do $p$-values change? How does this relate to equidistribution?
 \eit
-}
-
-
-\frame{
-\frametitle{Choice of seed}
-
-Preliminary results: the distribution of simple random samples is less uniform if you use a stupid seed
-
-\begin{table}[htdp]
-\begin{center}
-\begin{tabular}{r|c|c|}
- & $p$-value& $p$-value\\
-PRNG &  (seed = 100) &  (seed = 233424280) \\
-\hline
-RANDU & 0  & 0 \\
-Super-Duper LCG & 0.1798 & 1 \\
-Mersenne Twister*  & 0.0858 & 0.4741 \\
-Mersenne Twister & 0.1996 & 0.6143 \\
-SHA-256 PRNG & 0.1710 & 0.8584
-\end{tabular}
-\end{center}
-\label{default}
-\end{table}%
-
-\small{* using \texttt{np.random.choice} to sample}
-
-}
+}}
 
 
 
 \frame{
-\frametitle{Open questions}
-\begin{itemize}
-\itemsep10pt
-\item Do ``good'' PRNGs produce all samples with equal probability? All permutations?
-\pause
-\item Do departures from uniformity introduce bias?
-\pause
-\item Replace the default PRNGs in Python
-\url{https://www.github.com/statlab/cryptorandom}
-\pause
-\item Results apply more broadly to computer simulations: permutation tests, bootstrapping, MCMC, etc.
-\end{itemize}
+\frametitle{Next steps}
+\todo{
 
+Theoretical:
+\bit
+\item Understand how the equidistribution of a PRNG relates to how uniformity of sampling frequencies over different segments of the period
+\item Study the properties of hash function PRNGs
+\eit
+Practical:
+\bit
+\item Find examples where results of a study would change from using a better SA/PRNG
+\item Add these statistical tests to a more thorough test battery for PRNGs for Statistics
+\item Create plug-in hash function PRNGs for R and Python
+\eit
+}}
+
+
+\section[Appendix]{Appendix}
+
+
+\begin{frame}[label = impossibility_bounds]
+\frametitle{Impossibility bounds}
+Let $F$ be the uniform distribution on all samples of size $k$ from a population of $n$.
+For some subset of samples $S$,
+define $\mathcal{G} = \{ G: G(S) = 0, S \in \mathcal{S}\}$ and $\nu = \lvert S \rvert$.
+
+
+\begin{lemma}
+For any $G \in \mathcal{G}$, $ \lVert F - G \rVert_1 \geq \frac{2\nu}{{n \choose k}}$
+\end{lemma}
+
+
+For any bounded function $\psi: \Omega \to \reals$ and for any $G \in \mathcal{G}$,
+
+$$\left\lvert \int \psi dG - \int \psi dF \right\rvert \leq \lVert F - G \rVert_1 \lVert \psi \rVert_\infty$$
+
+
+\begin{corollary}
+There exists a statistic $\psi$ such that
+
+$$\left\lvert  \ex_F(\psi) - \ex_G(\psi) \right\rvert \geq  \frac{2\nu \lVert \psi \rVert_\infty}{{n \choose k}}$$
+\end{corollary}
+
+\hyperlink{pigeonhole}{\beamerbutton{back}}
+
+\end{frame}
+
+
+\frame{
+\tiny
+\begin{proof}[Proof of Lemma]
+Fix $S$ and choose $G \in \mathcal{G}$ such that $G(S) = 0, G(\omega) > 0$ for $\omega \in S^c$.
+\begin{align*}
+\lVert F - G \rVert_1 &= \sum_{\omega \in \Omega} \lvert F(\omega) - G(\omega) \rvert \\
+&= \sum_{\omega \in S} \lvert F(\omega) - G(\omega) \rvert + \sum_{\omega \in S^c} \lvert F(\omega) - G(\omega) \rvert\\
+&= \sum_{\omega \in S} \lvert F(\omega) \rvert + \sum_{\omega \in S^c} \lvert F(\omega) - G(\omega) \rvert\\
+&= \frac{ \lvert S \rvert}{{n \choose k}}+ \sum_{\omega \in S^c} \lvert F(\omega) - (F(\omega) + \eps_\omega) \rvert\\
+\end{align*}
+\noindent where $\eps_\omega \in [ - {n \choose k}^{-1}, 1 - {n\choose k}^{-1}]$ and $\sum_{\omega \in S^c} \eps_\omega = \sum_{\omega \in S} F(\omega) =  \frac{ \lvert S \rvert}{{n \choose k}}$.
+NB this must be the case to ensure that $\sum_{\omega} G(\omega) = 1$, since
+$$\sum_{\omega} G(\omega) =\sum_{\omega\in S^c} G(\omega) = \sum_{\omega\in S^c} F(\omega) + \eps_\omega = \sum_{\omega\in S^c} F(\omega) + \sum_{\omega\in S} F(\omega) = 1.$$
+
+Therefore,
+\begin{align*}
+\lVert F - G \rVert_1 &= \frac{ \lvert S \rvert}{{n \choose k}}+ \sum_{\omega \in S^c} \lvert \eps_\omega \rvert\\
+&=  \frac{ \lvert S \rvert}{{n \choose k}}+ \sum_{\omega \in S} \lvert F(\omega) \\
+&= \frac{2 \lvert S \rvert}{{n \choose k}}
+\end{align*}
+\end{proof}
+\hyperlink{pigeonhole}{\beamerbutton{back}}
 }
 
 \begin{frame}
