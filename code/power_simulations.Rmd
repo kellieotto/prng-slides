@@ -1,0 +1,162 @@
+---
+title: "Power simulations for multinomial statistics"
+author: "Kellie Ottoboni"
+date: "October 10, 2016"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, cache = TRUE)
+library(ggplot2)
+library(reshape2)
+library(viridis)
+
+report_theme <- theme(
+  panel.background = element_rect(fill = "#E8EBEF"),
+  axis.text.x = element_text(size = 14, color = "#143264", angle = -45),
+  axis.text.y = element_text(size = 14, color = "#143264"),
+  axis.title = element_text(size = 20, color = "#143264"),
+  title = element_text(color = "#143264", size = 20),
+  legend.title = element_text(color = "#143264", size = 14),
+  legend.text = element_text(color = "#143264", size = 14),
+  strip.text.x = element_text(size = 14)
+)
+```
+
+In what follows, we calculate the power of a test at the 1\% level. The data follow a multinomial distribution with varying number of samples (called B, on the x-axis) and number of categories (called N, on the y-axis). The probabilities are uniform (i.e. $1/N$), except for two categories, one of which has probability $0.95/N$ and the other has probability $1.05/N$.
+
+
+```{r functions}
+genMultinomialSample <- function(samplesize, bins, percentError = 0.1, reps = 10^5){
+  # Generate a random sample from a multinomial distribution with
+  # samplesize = number of observations
+  # bins = number of categories with near equal probabilities
+  # percentError = amount by which min and max probs deviate from 1/bins
+  #   e.g. for 0.1, min prob is 0.95/bins and max prob is 1.05/bins
+  # reps = number of random multinomials to generate
+  probs <- rep(1/bins, bins)
+  probs[1] <- (1 - percentError/2)/bins
+  probs[2] <- (1 + percentError/2)/bins
+  freq <- rmultinom(reps, size = samplesize, prob = probs)
+  return(freq)
+}
+
+chisqPvalues <- function(multinomialSample){
+  # Columns are replicates
+  pvalues <- apply(multinomialSample, 2, function(x) chisq.test(x)$p.value)
+  return(pvalues)
+}
+
+distrNormalRange <- function(w, k){
+  # CDF of the range of k IID standard normals, evaluated at w
+  tmp <- integrate(function(x) k*dnorm(x)*(pnorm(x+w)-pnorm(x))^(k-1), lower = -Inf, upper = Inf)
+  tmp$value
+}
+
+distrMultinomialRange <- function(w, n, k){
+  # CDF of the range of multinomial variables evaluated at w
+  # n draws, k categories each having probability 1/k
+  cutoff <- (w - 1/(2*n))*sqrt(k/n)
+  return(distrNormalRange(cutoff, k))
+}
+
+rangePvalues <- function(multinomialSample){
+  # Columns are replicates
+  pvalues <- apply(multinomialSample, 2, function(x) {
+    w <- diff(range(x))
+    n <- sum(x)
+    k <- length(x)
+    return(1 - distrMultinomialRange(w, n, k))
+    })
+  return(pvalues)
+}
+
+analyticChisqPower <- function(samplesize, bins, alpha = 0.01){
+  df <- bins-1
+  cutoff <- qchisq(1-alpha, df) 
+  return(pchisq(cutoff, df, ncp = samplesize*0.005/bins, lower.tail = FALSE))
+}
+```
+
+```{r power1}
+reps <- 10^6*seq(1, 100, length.out = 10)
+numSamples <- seq(250, 5000, by = 250)
+params <- expand.grid(reps, numSamples)
+power <- apply(params, 1, function(row){
+        distr <- genMultinomialSample(row[1], row[2], reps = 1000)
+        chipower <- mean(chisqPvalues(distr) <= 0.01)
+        rpower <- mean(rangePvalues(distr) <= 0.01)
+        return(c("Chi-square"=chipower, "Range"=rpower))
+})
+power <- cbind(params, t(power))
+power <- melt(power, id.vars = c("Var1", "Var2"))
+```
+
+```{r powerplot, fig.width = 12}
+
+ggplot(power, aes(x = Var1, y = Var2, fill = value)) + 
+  geom_tile() +
+  coord_flip() + 
+  facet_wrap(~variable) + 
+  xlab("B") + 
+  xlim(c(10^6, 10^8)) +
+  ylab("N") +
+  ggtitle("Power") +
+  scale_fill_viridis(name = "Power") +
+  report_theme 
+ggsave("powerplot.pdf") 
+```
+
+We do it again for bigger values of $n\choose k$.
+```{r power2}
+reps <- (10^6)*c(1, 2.5, 5, 10, 25, 50, 100, 250, 500, 900)
+numSamples <- seq(10000, 30000, by = 5000)
+params <- expand.grid(reps, numSamples)
+power <- apply(params, 1, function(row){
+        distr <- genMultinomialSample(unlist(row[1]), row[2], reps = 1000)
+        chipower <- mean(chisqPvalues(distr) <= 0.01)
+        rpower <- mean(rangePvalues(distr) <= 0.01)
+        return(c("Chi-square"=chipower, "Range"=rpower))
+})
+power <- cbind(params, t(power))
+powermelt <- melt(power, id.vars = c("Var1", "Var2"))
+```
+
+```{r powerplot2, fig.width = 12}
+ggplot(powermelt, aes(x = Var1, y = Var2, fill = value)) + 
+  geom_tile() +
+  coord_flip() + 
+  facet_wrap(~variable) + 
+  scale_x_log10() +
+  xlab("Reps") +
+  ylab("nCk") +
+  ggtitle("Power") +
+  scale_fill_viridis(name = "Power") +
+  report_theme
+```
+
+The power of the chi-square test is given by $\mathbb{P}(\Chi^2_{df, \lambda} \geq \chi^2_{df}(1-\alpha))$, where $\chi^2_{df(1-\alpha)}$ is the $1-\alpha$ quantile of the chi-squared distribution on $df$ degrees of freedom and $\lambda$ is a non-centrality parameter.
+The degrees of freedom in this test is equal to the number of bins minus 1, e.g. ${n\choose k}-1$. The non-centrality parameter is given by $\lambda = {reps}\times w^2$, where $w^2 = \sum_{i=1}^{n\choose k} \frac{(p_{0i} - p_{1i})^2}{p_{0i}} = \frac{2(0.05)^2}{n\choose k}= \frac{0.005}{n\choose k}$ in this particular example.
+```{r chisq}
+#reps <- 10^4*seq(1, 1000, length.out = 100)
+reps <- 10^(1:10)
+numSamples <- seq(100, 30000, by = 100)
+params <- expand.grid(reps, numSamples)
+chisqPower <- apply(params, 1, function(row) analyticChisqPower(row[1], row[2]))
+chisqPower <- cbind(params, chisqPower)
+```
+
+```{r chisqplot, fig.width = 12}
+
+ggplot(chisqPower, aes(x = Var1, y = Var2, fill = chisqPower)) + 
+  geom_tile() +
+  coord_flip() + 
+  scale_x_log10() +
+  xlab("Reps") + 
+  ylab("nCk") +
+  ggtitle("Analytical Power of the Chi-squared test") +
+  scale_fill_viridis(name = "Power") +
+  report_theme
+
+```
+
