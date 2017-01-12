@@ -161,7 +161,6 @@
 }
 
 
-
 \section[Introduction]{Introduction}
 
 
@@ -202,13 +201,45 @@ In practice, it is difficult to draw truly random samples.
 
 Instead, people tend to draw samples using
 \bit
-\item A \textbf{pseudorandom number generator} (PRNG) 
+\item A \textbf{pseudorandom number generator} (PRNG) that produces sequences of bits
 \item An algorithm that maps a set of pseudorandom numbers into a subset of the population
 \eit
 \vspace{20pt}
 
 Most people take for granted that this procedure is a sufficient approximation to simple random sampling.
 }
+
+
+\frame{
+\frametitle{PRNGs}
+
+A PRNG is a deterministic function with several components:
+\bit
+\item A user-supplied seed value used to set the internal state
+\item A function that maps the internal state to random bits
+\item A function that updates the internal state 
+\eit
+
+\begin{center}
+\resizebox{10cm}{!}{    
+\begin{tikzpicture}[node distance = 3cm, auto, scale = 0.5]
+    % Place nodes
+    \node[io] (seed) {Seed};
+    \node [f, right of=seed, node distance = 3cm] (state) {Internal state};
+    \node [message, right of=state, node distance = 3cm] (output) {Random bits};
+    % Draw edges
+    \path [line] (seed) -- (state);
+    \path [line] (state) -- (output);
+    \path (state) edge [->, in = 130, out = 50, distance = 20mm] node[above] {Update} (state);
+    % Draw box 
+    \draw ($(state.north west)+(-2.5,2.5)$)  rectangle ($(state.south east)+(2.5,-1)$);
+\end{tikzpicture}
+}
+\end{center}
+
+}
+
+
 \frame{
 \frametitle{Pigeons and Pigeonholes}
 
@@ -232,20 +263,20 @@ If ${n \choose k}$ is greater than the size of a PRNG's state space, then the PR
 \frame{
 \frametitle{Pigeons and Pigeonholes}
 
-Does it matter in practice? 
-\pause
-
-\vspace{20pt}
-
-Period of 32-bit linear congruential generators (e.g. RANDU): $2^{32} \approx 4 \times 10^9$ \\
-Samples of size $10$ from $50$: ${50 \choose 10} \approx 10^{10}$ \\
-\textbf{More than half of samples cannot be generated}
+Period of 32-bit linear congruential generators: \\
+\setlength{\parindent}{10ex} at most $2^{32} \approx 4 \times 10^9$ \\
+% (some poorly designed ones have an even shorter period) \\
+\noindent Samples of size $10$ from $50$: \\
+${50 \choose 10} \approx 10^{10}$ \\
+\noindent \textbf{More than half of samples cannot be generated}
 \vspace{20pt}
 \pause
 
-Period of Mersenne Twister (standard PRNG in Statistics): $2^{32 \times 624} \approx 2 \times 10^{6010}$ \\
-Permutations of $2084$ objects: $2084! \approx 3 \times 10^{6013}$\\
-\textbf{Less than $0.01\%$ of permutations can be generated}
+\noindent Period of Mersenne Twister (standard PRNG in Statistics): \\
+$2^{32 \times 624} \approx 2 \times 10^{6010}$ \\
+\noindent Permutations of $2084$ objects: \\
+$2084! \approx 3 \times 10^{6013}$\\
+\noindent\textbf{Less than $0.01\%$ of permutations can be generated}
 }
 
 
@@ -256,13 +287,30 @@ But does it \textit{really} matter in practice?
 \bit
 \itemsep10pt
 \item Social applications may require the PRNG to produce all possible samples -- e.g. jury duty summons, gaming machines, lottery tickets (\cite{marsaglia_seeds_2003})
-\item Impossibility bounds show that this introduces a nontrivial amount of bias into statistics estimated from Monte Carlo distributions \hyperlink{impossibility_bounds}{\beamerbutton{here}}
+\item \todo{think about if I want to include this} Impossibility bounds show that some statistics estimated from Monte Carlo distributions will have nontrivial bias (though we don't know which statistics) \hyperlink{impossibility_bounds}{\beamerbutton{here}}
 \eit
 \end{frame}
 
 
-\section[Sampling algorithms]{Sampling Algorithms}
 
+\frame{
+\frametitle{Arguments}
+\bit
+\item Some sampling algorithms are better than others -- look under the hood of your software
+\item Inputs to your PRNGs matter for producing ``good'' PRNs
+\item PRNGs for Statistical applications should be judged on how well they produce random samples when passed into a reasonable sampling algorithm
+\eit
+}
+
+
+\section[Sampling algorithms]{Sampling Algorithms}
+  \begin{frame}
+  \frametitle{Contents}
+  \tableofcontents[currentsection]
+  \end{frame}
+  
+  
+  
 \frame{
 \frametitle{Sampling Algorithms}
 
@@ -288,11 +336,12 @@ Two general strategies:
 \end{algorithm}
 
 \bit
-%\item Used for sampling in \todo{Stata? can't find the source code or algorithm}
 \item Relies on assumption that all permutations are equally likely
 \item Inefficient: requires $n$ PRNs and $O(n\log n)$ sorting operation
-\item Sort: Stata uses a random sort function to break ties! Not reproducible! \todo{cite http://www.stata-journal.com/sjpdf.html?articlenum=dm0019}
+\item Possibly the basis for the \texttt{sample} function in Stata
 \eit
+
+\todo{who else recommends PIKK? do a lit search}
 
 }
 
@@ -321,9 +370,9 @@ Two general strategies:
 
 
 \frame{
-\frametitle{Using random integers}
+\frametitle{Random indices}
 \begin{algorithm}[H]                      % enter the algorithm environment
-\caption{Uniform random integers}          % give the algorithm a caption
+\caption{Uniform random indices}          % give the algorithm a caption
 \label{uri}                           % and a label for \ref{} commands later in the document
 \begin{algorithmic}[1]             % enter the algorithmic environment
 \Let{$\tilde{n}$}{$n$}
@@ -348,53 +397,108 @@ Two general strategies:
 }
 
 
-\frame{
+\begin{frame}[label = nonuniform-lemma]
 \frametitle{Generating (non)uniform integers}
 \bit
-\item Algorithm 2 relies on uniformly distributed integers
+\item These algorithms depend on uniformly distributed integers
 \item A common way to get integers in the range $\{1, \dots, m\}$ is $X = \lfloor m U\rfloor + 1$, $U \sim U[0,1)$.
 %\bit
 %\item $U$ is uniform on $\{0, 2^{-w}, 2\times 2^{-w}, \dots, (2^w - 1)\times2^{-w}\}$
 %\item $mU$ is uniform on $\{0, m2^{-w}, 2m\times 2^{-w}, \dots, (2^w - 1)m\times2^{-w}\}$
 %\eit
-\item Unless $m$ is a multiple of $2^w$, $\lfloor mU \rfloor$ will not truly be uniform!
+\item Unless $m$ is a multiple of $2^w$, $\lfloor mU \rfloor$ will not truly be uniform! (\cite{knuth_art_1997})
 \eit
 
 \begin{lemma}
-For $m < 2^w$, the ratio of the largest to smallest selection probability is, to first order,  $1+ m 2^{-w}$. (See, e.g., Knuth v2 3.4.1.A.)
+For $m < 2^w$, the ratio of the largest to smallest selection probability is, to first order,  $1+ m 2^{-w}$.
 \end{lemma}
-\todo{proper citation, put proof in appendix}
-}
+
+\hyperlink{nonuniform-proof}{\beamerbutton{Proof}}
+
+\end{frame}
+
+
 
 \frame{
 \frametitle{Generating (non)uniform integers}
-A better way to generate integers on $\{1, \dots, m\}$:
+
 \bit
-\item Let $w = \lfloor \log_2 m \rfloor + 1$
-\item Generate a $w$-bit integer $J$
-\item If $J > m$, discard and repeat.
+\item A better way to generate integers on $\{1, \dots, m\}$:
+\vspace{10pt}
+ Let \begin{displaymath}
+   w = \left\{
+     \begin{array}{lr}
+       \log_2(m) & \text{if $m$ is a power of 2}\\
+       \lfloor \log_2(m) \rfloor + 1 & \text{otherwise}
+     \end{array}
+   \right.
+\end{displaymath} 
+
+\vspace{10pt}
+
+Generate a $w$-bit integer $J$. If $J > m$, discard and repeat.
+\vspace{10pt}
+
+\item Possibly slow: will discard nearly half of draws when $m$ is close to $2^{w-1}$
+\item Resulting integers will truly be uniform
+\eit
+}
+
+
+
+\frame{
+\frametitle{Sampling Algorithms}
+\begin{table}[htdp]
+\begin{center}
+\begin{tabular}{l|c|c}
+Package & Sampling algorithm & Random integer algorithm \\
+\hline
+R & random indices & variant of floor method \\
+Python \texttt{random} & random indices & discard method \\
+Numpy \texttt{random} & shuffle and keep $k$ & discard method \\
+Stata & ? & ? \\
+\hline 
+\end{tabular}
+\end{center}
+\end{table}%
+
+
+\bit
+\item Stata blogs recommend people use PIKK when coding up sampling themselves. But Stata's sort function is randomized by default. Not reproducible! (\cite{schumm_stata_2006})
+\item \todo{R bug report}
 \eit
 }
 
 \frame{
 \frametitle{Sampling Algorithms}
+\todo{May want to remove this slide or move it later}
 
 \bit
-\item Red: require $n$ PRNs
-\item Blue: require $k$ PRNs
+\item Generate samples using a single PRNG and single seed, various sampling algorithms and number of samples \todo{what's the seed}
+\item Red require $n$ PRNs; Blue require only $k$ PRNs
 \item No straightforward pattern in how uniform the samples are
 \eit
 
+%\begin{figure}[htbp]
+%\begin{center}
+%\includegraphics[width = .8\textwidth]{fig/sa-comparison}
+%\end{center}
+%\end{figure}
 \begin{figure}[htbp]
 \begin{center}
-\includegraphics[width = .8\textwidth]{fig/sa-comparison}
+\includegraphics[width = .8\textwidth]{fig/prng-sa-lineplot}
 \end{center}
 \end{figure}
 
 }
 
 \section[PRNGs]{Pseudorandom Number Generators}
+\subsection[Pseudorandomness]{Pseudorandomness}
 
+  \begin{frame}
+  \frametitle{Contents}
+  \tableofcontents[currentsection]
+  \end{frame}
 
 \frame{
 \frametitle{Pseudorandomness}
@@ -410,8 +514,8 @@ A better way to generate integers on $\{1, \dots, m\}$:
 
 
 \bit
-\item Uniformity: Values and sequences of values should be equiprobable
-\item Independence: Lack of serial correlation, unpredictable
+\item Uniformity: values and sequences of values should be equiprobable
+\item Independence: lack of serial correlation, unpredictable
 \eit
 \pause
 PRNGs can't do this perfectly.
@@ -428,26 +532,147 @@ PRNGs can't do this perfectly.
 \frametitle{What makes a PRNG}
 
 \bit
-\item Fast and memory efficient
 \item Mimics a random sequence (statistically indistinguishable)
-\item Unpredictable. this is different from random - if it's deterministic, then it's predictable to some degree
-\item Jump-ahead feature so we can efficiently skip random numbers, generate multiple streams for parallel applications
+\item Unpredictable. This is different from random - if it's deterministic, then it's predictable to some degree
+\item Fast and memory efficient
+\item Desirable, but not essential:
+\bit 
+\item Jump-ahead feature to efficiently skip through random numbers, generate multiple streams for parallel applications
+\item
 \eit
+\eit
+}
+
+
+\subsection[Testing PRNGs]{Testing PRNGs}
+
+
+\frame{
+\frametitle{Testing PRNGs}
+\bit
+\item ``Independent'' and ``uniform'' are broad criteria -- many ways to define and check for these properties
+\bit
+\item Uniformity at varying levels of granularity
+\item Correlations within and between subsequences
+\eit
+\item Test batteries: 
+\bit
+\item Diehard battery (\cite{marsaglia_diehard_1995})
+\item NIST Statistical Test Suite (\cite{soto_statistical_1999,rukhin_statistical_2010})
+\item TestU01 suite (\cite{lecuyer_testu01_2007})
+\eit
+\eit
+}
+
+\frame{
+\frametitle{Spectral test}
+\bit
+\item Some PRNGs generate points with geometric structure 
+\item Linear congruential generators generate hyperplanes in space (more on this later)
+\item Test for independence by considering the joint distribution of sequences of points
+\item The spectral test in dimension $d$ considers a set of parallel hyperplanes that covers all points $(x_n, \dots, x_{n+d - 1})$.
+$$\nu_d = 1/\max{\text{distance between parallel hyperplanes}}$$ is the ``accuracy''
+\item Idea: High accuracy means that points fall on many hyperplanes, indicates less correlation between consecutive PRNs
+\eit
+
+\todo{add plot of 2d and 3d points}
 }
 
 
 
 \frame{
 \frametitle{Testing PRNGs}
-\todo{
-\bit
-\item List and cite test suites
-\item Describe a few interesting/important tests
-\item Argue that for statistical use, PRNGs should be able to produce samples uniformly and this ought to be a test
-\item Describe chi-squared test and range test
-\item Mention Spearman correlation test of permutations?
-\eit
-}}
+\todo{Argue that for statistical use, PRNGs should be able to produce samples uniformly and this ought to be a test}
+}
+
+%
+%\frame{
+%\frametitle{PRNGs}
+%\begin{center}
+%\includegraphics[width = 0.7\textwidth]{randu_freq_inR.pdf}
+%\end{center}
+%\begin{itemize}
+%\item Take $10^7$ SRSs of size 2 from a population of 30, using RANDU with PIKK
+%\item Departure from uniformity is less obvious with better PRNGs -- do a hypothesis test
+%\end{itemize}
+%}
+%
+\frame{
+\frametitle{Set-up}
+\begin{align*}
+H_0&: \pr(\text{sample}_i ) = \frac{1}{N} \text{ for all samples } i=1,\dots,N\\
+H_1&: \pr(\text{sample}_i ) \neq \frac{1}{N} \text{ for some sample} 
+\end{align*}
+\vspace{15pt}
+\begin{itemize}
+\item Test by generating a large ``sample'' of $B$ SRSs
+\item Under $H_0$, the number of times each SRS is observed follows a multinomial distribution with $B$ trials and equal selection probabilities $1/N$
+\end{itemize}
+}
+
+\frame{
+\frametitle{Proposals}
+\begin{enumerate}
+\item Chi-squared test:
+
+$$X^2 = \sum_{i=1}^N \frac{(O_i - E_i)^2}{E_i}$$
+
+where $E_i = \frac{B}{N}$ is the expected number and $O_i$ is the observed number of sample $i$.
+Under $H_0$, $X^2 \sim \chi^2_{N-1}$.
+
+\item Range statistic test:
+
+$$ R = \max_{i} O_i - \min_i O_i$$
+
+$R$ has a complicated distribution... use asymptotic approximation from Young (1962):
+
+$$\pr(R \leq r) \approx P(W_N \leq (r-(2B)^{-1})(N/B)^{1/2})$$
+where $W_N$ denotes the sample range of $N$ independent standard normal random variables.
+\end{enumerate}
+}
+
+\frame{
+\frametitle{What's the alternative?}
+\begin{center}
+%\includegraphics[width = 0.75\textwidth]{randu_freq_inR.pdf}
+\end{center}
+We want to be sensitive to a few large deviations from $1/N$.
+}
+
+
+\frame{
+\frametitle{Power}
+Estimate the power for different $B$ and $N$ under the following alternative hypothesis:
+\begin{itemize}
+\item All samples but two have probability $1/N$
+\item One sample has probability $0.95/N$, the other has probability $1.05/N$
+\item Reject the null hypothesis at level $1\%$
+\item Power $= \pr(\text{Reject null at level 1\% under this alternative})$
+\end{itemize}
+
+\vspace{20pt}
+
+Two ways to do power calculations:
+\begin{enumerate}
+\item Simulation
+\item Analytically
+\end{enumerate}
+}
+
+\frame{
+\frametitle{Simulations}
+
+\todo{fix plot background}
+
+\includegraphics[width = \textwidth]{fig/powerplot}
+
+
+For large values of $N$, you need fewer samples (smaller $B$) to achieve high power. \\
+
+\vspace{15pt}
+Choose your statistics wisely!
+}
+
 
 \frame{
 \frametitle{Bad seeds}
@@ -456,6 +681,8 @@ PRNGs can't do this perfectly.
 \item Mersenne Twister has problems with seeds with too many zeros (\cite{saito_simd-oriented_2008})
 \item LCGs may not achieve their full period with certain seeds (\cite{park_random_1988})
 \eit
+
+\todo{Think about removing this and putting in some of the frequency simulation results instead. This is a highly stylized example - I hand picked the seeds, reps, etc}
 
 \pause
 \begin{figure}[htbp]
@@ -466,6 +693,7 @@ PRNGs can't do this perfectly.
 \end{figure}
 }
 
+\subsection[Common PRNGs]{Common PRNGs}
 
 \frame{
 \frametitle{Linear Congruential Generators}
@@ -504,6 +732,33 @@ The period of an LCG is $m$ for all seeds $X_0$ if and only if
 \footnotesize{(Wikipedia)}
 \end{figure}
 }
+
+\frame{
+\frametitle{Better LCGs}
+\bit
+\item Super-Duper: $X_{n+1} = (69069X_{n} )\mod 2^{32}$
+\bit
+\item $69069 = 3 \times 7 \times 11 \times 13 \times 23$
+\item Considered a pretty good LCG, passes \todo{tests}
+\eit
+\item MINSTD: $X_{n+1} = (16807 X_{n} )\mod (2^{31}-1)$
+\bit
+\item $16807 = 7^5$
+\item The ``minimum standard'' against which other PRNGs should be judged \todo{cite park and miller }
+\eit
+\item KISS: combines Super-Duper with two other PRNGs
+\bit
+\item Was previously the only PRNG in Stata
+\item Period length over $2^{210}$
+\eit
+\item Wichman-Hill PRNG: a sum of 3 LCGs
+\bit
+\item \todo{}
+\eit
+\eit
+
+}
+
 
 \frame{
 \frametitle{Linear Congruential Generators}
@@ -565,7 +820,7 @@ The period of an LCG is $m$ for all seeds $X_0$ if and only if
 \frametitle{Mersenne Twister}
 \bit
 \item Fast to compute but has a large state space, not the most memory efficient
-\item Generally considered ``random'' enough for Statistics, but fails some TestU01 tests
+\item Fails some TestU01 tests but has been generally considered ``random'' enough for Statistics... (but stay tuned)
 \item Completely predictable after we've seen 624 values
 \item No good jump ahead feature
 \eit
@@ -637,7 +892,7 @@ Procedure for using a cryptographic hash function as PRNG:
 \item Set a seed, a large random integer
 \item Set the counter to $0$
 \item Set the state to be ``seed,counter''
-\item Hash the state value. This is your random number.
+\item Hash the state value. This is your random number (expressed in hexadecimal).
 \item Increment the counter
 \item Repeat Steps 2-5 as many times as needed
 \end{enumerate}
@@ -646,39 +901,75 @@ Procedure for using a cryptographic hash function as PRNG:
 \frame{
 \frametitle{Hash function PRNGs}
 \bit
-\item Efficient: based on fast, pre-existing hash function code
+\item Efficient: based on fast, pre-existing hash function code. Some cryptographic hash functions are even built into hardware (e.g. AES and Intel)
 \item Memory efficient: only need to store the seed and counter
-\item Unpredictable: small changes to input produce large unpredictable changes to output. The only way to figure out the sequence is to know the hashing function
+\item Unpredictable: small changes to input produce large unpredictable changes to output. The only way to figure out the sequence is to know the seed.
 \item Jump ahead: add the desired number of steps to the counter
 \eit
 }
 
 \section[Results]{Results}
+  \begin{frame}
+  \frametitle{Contents}
+  \tableofcontents[currentsection]
+  \end{frame}
+  
+%  
+%\frame{
+%\frametitle{Simulations}
+%\begin{figure}[htbp]
+%\begin{center}
+%\includegraphics[width = \textwidth]{fig/prng-comparison-range-n13-pikk}
+%\end{center}
+%\end{figure}
+%}
+% 
+%\frame{
+%\frametitle{Simulations}
+%\begin{figure}[htbp]
+%\begin{center}
+%\includegraphics[width = \textwidth]{fig/prng-comparison-chisq-n13-pikk}
+%\end{center}
+%\end{figure}
+%}
 
 \frame{
 \frametitle{Simulations}
-\todo{
-\bit
-\item Compare MT/CSPRNG/LCG with different seeds
-\item For the unique sample frequencies, report
-\bit
-\item Range statistic $p$-value
-\item Chi-squared test $p$-value
-\eit
-\item Do this for various numbers of samples - 1e6 up to 1e8. How do $p$-values change? How does this relate to equidistribution?
-\eit
-}}
+\begin{figure}[htbp]
+\begin{center}
+\includegraphics[width = \textwidth]{fig/prng-comparison-range-n13-sbi}
+\end{center}
+\end{figure}
+}
+ 
+\frame{
+\frametitle{Simulations}
+\begin{figure}[htbp]
+\begin{center}
+\includegraphics[width = \textwidth]{fig/prng-comparison-chisq-n13-sbi}
+\end{center}
+\end{figure}
+}
 
-
+\frame{
+\frametitle{Simulations}
+\todo{summarize sim results}
+\bit
+\item Even though sampling $k$ from $n$ is complementary to sampling $n-k$ from $n$, the resulting samples are not equally uniform
+\item None of the 3 PRNGs is best overall -- results vary by seed value
+\item $p$-value curves tend to dip around $5\times 10^6$ samples -- trade-off between statistical power and equidistribution of PRNG?
+\eit
+}
 
 \frame{
 \frametitle{Next steps}
-\todo{
+%\todo{
 
 Theoretical:
 \bit
-\item Understand how the equidistribution of a PRNG relates to how uniformity of sampling frequencies over different segments of the period
 \item Study the properties of hash function PRNGs
+\item Understand how the equidistribution of a PRNG relates to how uniformity of sampling frequencies over different segments of the period
+\item Implement a sequential hypothesis test for uniformity of samples
 \eit
 Practical:
 \bit
@@ -686,7 +977,8 @@ Practical:
 \item Add these statistical tests to a more thorough test battery for PRNGs for Statistics
 \item Create plug-in hash function PRNGs for R and Python
 \eit
-}}
+%}
+}
 
 
 \section[Appendix]{Appendix}
@@ -743,6 +1035,37 @@ Therefore,
 \end{proof}
 \hyperlink{pigeonhole}{\beamerbutton{back}}
 }
+
+\begin{frame}[label = nonuniform-proof]
+\tiny
+\begin{proof}
+Define $Y = \lfloor mX \rfloor + 1$ and $\tilde{X}$ to be a uniform random integer on $\{0, 1, \dots, 2^w - 1\}$ (while $X$ has the same distribution scaled by $2^{-w}$).
+The selection probability for a particular integer value is 
+\begin{align*}
+\pr\left(Y = y\right) &= \pr\left(1 + \lfloor mX \rfloor = y\right) \\
+&= \pr\left(y-1 \leq mX < y\right) \\
+&= \pr\left(\tilde{X} < \frac{y2^w}{m}\right) - \pr\left(\tilde{X} < \frac{(y-1)2^w}{m}\right)\\
+&= \pr\left(\tilde{X} < \left\lceil\frac{y2^w}{m}\right\rceil\right) - \pr\left(\tilde{X} \leq \left\lceil\frac{(y-1)2^w}{m}\right\rceil\right)\\
+&= 2^{-w}\left(k^-(y)- k^-(y-1) + 1\right) = 2^{-w}\left(k^+(y-1)- k^-(y-1) \right)
+\end{align*}
+
+\noindent where, for fixed $m$, we define $k^-(i) \equiv \min \{k: k2^{-w} \geq i/m\}$ for all $i$,
+$k^+(i) \equiv \max \{k : k2^{-w} < i/m \} = k^-(i+1)-1$ for $i = 0, \dots, m-1$
+and $k^+(m) \equiv 2^w$.
+The maximum ratio of selection probabilities is 
+
+\begin{align*}
+\max_{i, j \in \{0, \ldots, m-1\}} \frac{k^+(i) - k^-(i)}{k^+(j) - k^-(j)}
+&= \frac{ \max_{i=0}^{m-1} (k^+(i) - k^-(i))}{\min_{i=0}^{m-1} (k^+(i) - k^-(i))} \\
+&= \frac{ \max_{i=0}^{m-1} (k^+(i) - k^+(i+1) + 1)}{\min_{i=0}^{m-1} (k^-(i+1) - k^-(i) -1)} \\
+&= \frac{\lceil 2^w/m \rceil + 1}{\lfloor 2^w/m \rfloor - 1} \\
+&= 1 + 2^{-w}m + ...
+\end{align*}
+
+\end{proof}
+\hyperlink{nonuniform-lemma}{\beamerbutton{back}}
+
+\end{frame}
 
 \begin{frame}
 \frametitle{References}
