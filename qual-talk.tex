@@ -294,11 +294,14 @@ But does it \textit{really} matter in practice?
 
 
 \frame{
-\frametitle{Arguments}
+\frametitle{Overview}
 \bit
 \item Some sampling algorithms are better than others -- look under the hood of your software
-\item Inputs to your PRNGs matter for producing ``good'' PRNs
 \item PRNGs for Statistical applications should be judged on how well they produce random samples when passed into a reasonable sampling algorithm
+\bit
+\item New tests for pseudorandomness
+\item New PRNGs
+\eit
 \eit
 }
 
@@ -469,28 +472,6 @@ Stata & ? & ? \\
 \eit
 }
 
-\frame{
-\frametitle{Sampling Algorithms}
-\todo{May want to remove this slide or move it later}
-
-\bit
-\item Generate samples using a single PRNG and single seed, various sampling algorithms and number of samples \todo{what's the seed}
-\item Red require $n$ PRNs; Blue require only $k$ PRNs
-\item No straightforward pattern in how uniform the samples are
-\eit
-
-%\begin{figure}[htbp]
-%\begin{center}
-%\includegraphics[width = .8\textwidth]{fig/sa-comparison}
-%\end{center}
-%\end{figure}
-\begin{figure}[htbp]
-\begin{center}
-\includegraphics[width = .8\textwidth]{fig/prng-sa-lineplot}
-\end{center}
-\end{figure}
-
-}
 
 \section[Pseudorandomness]{Pseudorandomness}
 
@@ -807,6 +788,8 @@ The period of an LCG is $m$ for all seeds $X_0$ if and only if
 \eit 
 }
 
+
+
 \frame{
 \frametitle{Mersenne Twister}
 \bit
@@ -817,6 +800,22 @@ The period of an LCG is $m$ for all seeds $X_0$ if and only if
 \eit
 }
 
+\frame{
+\frametitle{Sample uniformity}
+
+\bit
+\item Generate samples using MT with a single seed, increasing number of samples 
+\item PIKK requires $n$ PRNs; sample\_by\_index requires only $k$ PRNs
+\item No straightforward pattern in how uniform the samples are
+\eit
+
+\begin{figure}[htbp]
+\begin{center}
+\includegraphics[width = .8\textwidth]{fig/prng-sa-lineplot}
+\end{center}
+\end{figure}
+
+}
 
 
 \frame{
