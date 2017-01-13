@@ -373,7 +373,7 @@ Two general strategies:
 \frametitle{Random indices}
 \begin{algorithm}[H]                      % enter the algorithm environment
 \caption{Uniform random indices}          % give the algorithm a caption
-\label{uri}                           % and a label for \ref{} commands later in the document
+\label{algo:uri}                           % and a label for \ref{} commands later in the document
 \begin{algorithmic}[1]             % enter the algorithmic environment
 \Let{$\tilde{n}$}{$n$}
 \Let{Population indices}{$\{1, \dots, n\}$}
@@ -492,8 +492,7 @@ Stata & ? & ? \\
 
 }
 
-\section[PRNGs]{Pseudorandom Number Generators}
-\subsection[Pseudorandomness]{Pseudorandomness}
+\section[Pseudorandomness]{Pseudorandomness}
 
   \begin{frame}
   \frametitle{Contents}
@@ -538,25 +537,26 @@ PRNGs can't do this perfectly.
 \item Desirable, but not essential:
 \bit 
 \item Jump-ahead feature to efficiently skip through random numbers, generate multiple streams for parallel applications
-\item
+\item \todo{}
 \eit
 \eit
 }
 
 
-\subsection[Testing PRNGs]{Testing PRNGs}
-
 
 \frame{
 \frametitle{Testing PRNGs}
 \bit
+\itemsep 10pt
 \item ``Independent'' and ``uniform'' are broad criteria -- many ways to define and check for these properties
 \bit
+\itemsep 10pt
 \item Uniformity at varying levels of granularity
 \item Correlations within and between subsequences
 \eit
 \item Test batteries: 
 \bit
+\itemsep 10pt
 \item Diehard battery (\cite{marsaglia_diehard_1995})
 \item NIST Statistical Test Suite (\cite{soto_statistical_1999,rukhin_statistical_2010})
 \item TestU01 suite (\cite{lecuyer_testu01_2007})
@@ -564,136 +564,126 @@ PRNGs can't do this perfectly.
 \eit
 }
 
-\frame{
-\frametitle{Spectral test}
-\bit
-\item Some PRNGs generate points with geometric structure 
-\item Linear congruential generators generate hyperplanes in space (more on this later)
-\item Test for independence by considering the joint distribution of sequences of points
-\item The spectral test in dimension $d$ considers a set of parallel hyperplanes that covers all points $(x_n, \dots, x_{n+d - 1})$.
-$$\nu_d = 1/\max{\text{distance between parallel hyperplanes}}$$ is the ``accuracy''
-\item Idea: High accuracy means that points fall on many hyperplanes, indicates less correlation between consecutive PRNs
-\eit
-
-\todo{add plot of 2d and 3d points}
-}
-
-
 
 \frame{
-\frametitle{Testing PRNGs}
-\todo{Argue that for statistical use, PRNGs should be able to produce samples uniformly and this ought to be a test}
-}
-
-%
-%\frame{
-%\frametitle{PRNGs}
-%\begin{center}
-%\includegraphics[width = 0.7\textwidth]{randu_freq_inR.pdf}
-%\end{center}
-%\begin{itemize}
-%\item Take $10^7$ SRSs of size 2 from a population of 30, using RANDU with PIKK
-%\item Departure from uniformity is less obvious with better PRNGs -- do a hypothesis test
-%\end{itemize}
-%}
-%
-\frame{
-\frametitle{Set-up}
-\begin{align*}
-H_0&: \pr(\text{sample}_i ) = \frac{1}{N} \text{ for all samples } i=1,\dots,N\\
-H_1&: \pr(\text{sample}_i ) \neq \frac{1}{N} \text{ for some sample} 
-\end{align*}
-\vspace{15pt}
-\begin{itemize}
-\item Test by generating a large ``sample'' of $B$ SRSs
-\item Under $H_0$, the number of times each SRS is observed follows a multinomial distribution with $B$ trials and equal selection probabilities $1/N$
-\end{itemize}
-}
-
-\frame{
-\frametitle{Proposals}
+\frametitle{Testing for uniformity}
 \begin{enumerate}
-\item Chi-squared test:
+\item Kolmogorov-Smirnov test: values should appear IID $U[0,1]$
+\pause
+\item Chi-squared test: break values or sequences of values into categories with known frequencies under the null
+\pause
+\item \textbf{New proposal:} Range test \\
 
-$$X^2 = \sum_{i=1}^N \frac{(O_i - E_i)^2}{E_i}$$
-
-where $E_i = \frac{B}{N}$ is the expected number and $O_i$ is the observed number of sample $i$.
-Under $H_0$, $X^2 \sim \chi^2_{N-1}$.
-
-\item Range statistic test:
+Break values into equally probable categories and compute the range of observed frequencies
 
 $$ R = \max_{i} O_i - \min_i O_i$$
 
-$R$ has a complicated distribution... use asymptotic approximation from Young (1962):
+$R$ has a complicated distribution based on multinomial distribution... use asymptotic approximation from \citet{young_two_1962}: 
 
 $$\pr(R \leq r) \approx P(W_N \leq (r-(2B)^{-1})(N/B)^{1/2})$$
 where $W_N$ denotes the sample range of $N$ independent standard normal random variables.
 \end{enumerate}
 }
 
-\frame{
-\frametitle{What's the alternative?}
-\begin{center}
-%\includegraphics[width = 0.75\textwidth]{randu_freq_inR.pdf}
-\end{center}
-We want to be sensitive to a few large deviations from $1/N$.
-}
-
 
 \frame{
-\frametitle{Power}
-Estimate the power for different $B$ and $N$ under the following alternative hypothesis:
-\begin{itemize}
-\item All samples but two have probability $1/N$
-\item One sample has probability $0.95/N$, the other has probability $1.05/N$
-\item Reject the null hypothesis at level $1\%$
-\item Power $= \pr(\text{Reject null at level 1\% under this alternative})$
-\end{itemize}
+\frametitle{Testing for independence}
 
-\vspace{20pt}
-
-Two ways to do power calculations:
 \begin{enumerate}
-\item Simulation
-\item Analytically
+\item Gap test: count length of sequence between values in a given range
+\item Permutation test: look at ordering of values in subsequences of length $t$
+\item Serial correlation test: correlation between consecutive pairs of values
+\item Many more possibilities!
 \end{enumerate}
-}
 
-\frame{
-\frametitle{Simulations}
-
-\todo{fix plot background}
-
-\includegraphics[width = \textwidth]{fig/powerplot}
-
-
-For large values of $N$, you need fewer samples (smaller $B$) to achieve high power. \\
-
-\vspace{15pt}
-Choose your statistics wisely!
 }
 
 
+
 \frame{
-\frametitle{Bad seeds}
+\frametitle{Geometric tests}
 \bit
-\item \textbf{Seed}: an initial value to set the internal state of a PRNG.
-\item Mersenne Twister has problems with seeds with too many zeros (\cite{saito_simd-oriented_2008})
-\item LCGs may not achieve their full period with certain seeds (\cite{park_random_1988})
+\item Some PRNGs generate points with geometric structure (more on this later)
+\item The \textbf{spectral test} in dimension $d$ considers a set of parallel hyperplanes that covers all points $(x_n, \dots, x_{n+d - 1})$.
+$$\nu_d = 1/\max{\text{distance between parallel hyperplanes}}$$
 \eit
 
-\todo{Think about removing this and putting in some of the frequency simulation results instead. This is a highly stylized example - I hand picked the seeds, reps, etc}
+ Idea: More information needed to describe structure $\iff$ less correlation between consecutive PRNs
 
-\pause
-\begin{figure}[htbp]
-\begin{center}
-\includegraphics[width = 0.8\textwidth]{fig/bad-seeds.pdf}
-\end{center}
-\footnotesize{$10^5$ samples of size $2$ from a population of $30$ (Mersenne Twister in R)}
+\begin{figure}
+\includegraphics[width = 0.25\textwidth]{fig/lcg_2d}\includegraphics[width = 0.25\textwidth]{fig/lcg_3d} \\
+{\tiny $ X_{n+1} = (137X_n+ 187) \mod 256$}
 \end{figure}
 }
 
-\subsection[Common PRNGs]{Common PRNGs}
+
+
+\frame{
+\frametitle{Testing PRNGs}
+
+\bit
+\item Some sampling algorithms use PRNGs in ways that are not covered by these tests
+\item E.g. Algorithm~\ref{algo:uri} for sampling by uniform random indices
+\bit
+\item To generate a SRS of size $k$ from $n$, obtain PRNs $(U_1, \dots, U_k)$ where 
+$U_j$ is uniform on $\{1, \dots, n - j + 1\}$
+\item The sequences $(U_1, \dots, U_k)$ should themselves be equiprobable
+\eit
+\pause
+\item Test by generating a large ``sample'' of $B$ SRSs
+
+\begin{align*}
+H_0&: \pr(\text{SRS}_i ) = \frac{1}{{n\choose k}} \text{ for all ${n\choose k}$ possible SRSs} \\
+H_1&: \pr(\text{SRS}_i ) \neq \frac{1}{{n\choose k}}\text{ for some SRS} 
+\end{align*}
+\vspace{15pt}
+
+
+\item Under $H_0$, the number of times each SRS is observed follows a multinomial distribution with $B$ trials and equal selection probabilities $1/{n \choose k}$
+
+\eit
+}
+
+
+\frame{
+\frametitle{Testing PRNGs}
+Test proposals:
+
+\bit
+\item Chi-squared or range test
+\item Sequential probability ratio test
+\eit
+}
+
+\frame{
+\frametitle{SPRT}
+\todo{}
+}
+
+%\frame{
+%\frametitle{Bad seeds}
+%\bit
+%\item \textbf{Seed}: an initial value to set the internal state of a PRNG.
+%\item Mersenne Twister has problems with seeds with too many zeros (\cite{saito_simd-oriented_2008})
+%\item LCGs may not achieve their full period with certain seeds (\cite{park_random_1988})
+%\eit
+%
+%\todo{Think about removing this and putting in some of the frequency simulation results instead. This is a highly stylized example - I hand picked the seeds, reps, etc}
+%
+%\pause
+%\begin{figure}[htbp]
+%\begin{center}
+%\includegraphics[width = 0.8\textwidth]{fig/bad-seeds.pdf}
+%\end{center}
+%\footnotesize{$10^5$ samples of size $2$ from a population of $30$ (Mersenne Twister in R)}
+%\end{figure}
+%}
+
+
+
+
+
+\section[Common PRNGs]{Common PRNGs}
 
 \frame{
 \frametitle{Linear Congruential Generators}
@@ -739,12 +729,12 @@ The period of an LCG is $m$ for all seeds $X_0$ if and only if
 \item Super-Duper: $X_{n+1} = (69069X_{n} )\mod 2^{32}$
 \bit
 \item $69069 = 3 \times 7 \times 11 \times 13 \times 23$
-\item Considered a pretty good LCG, passes \todo{tests}
+\item Considered a good LCG, passes spectral tests in low dimensions
 \eit
 \item MINSTD: $X_{n+1} = (16807 X_{n} )\mod (2^{31}-1)$
 \bit
 \item $16807 = 7^5$
-\item The ``minimum standard'' against which other PRNGs should be judged \todo{cite park and miller }
+\item The ``minimum standard'' against which other PRNGs should be judged (\cite{park_random_1988})
 \eit
 \item KISS: combines Super-Duper with two other PRNGs
 \bit
@@ -753,7 +743,8 @@ The period of an LCG is $m$ for all seeds $X_0$ if and only if
 \eit
 \item Wichman-Hill PRNG: a sum of 3 LCGs
 \bit
-\item \todo{}
+\item Was previously the only PRNG in Excel
+\item Faulty implementation didn't allow seeding and sometimes produced negative values (\cite{mccullough_microsoft_2008})
 \eit
 \eit
 
@@ -885,7 +876,7 @@ Cryptographic hash functions:
 }
 
 
-\frame{
+\begin{frame}\label{sha256_procedure}
 \frametitle{Hash function PRNGs}
 Procedure for using a cryptographic hash function as PRNG:
 \begin{enumerate}
@@ -896,7 +887,10 @@ Procedure for using a cryptographic hash function as PRNG:
 \item Increment the counter
 \item Repeat Steps 2-5 as many times as needed
 \end{enumerate}
-}
+
+\vspace{15pt}
+This PRNG passes the tests described. \hyperlink{sha256_tests}{\beamerbutton{see appendix}}
+\end{frame}
 
 \frame{
 \frametitle{Hash function PRNGs}
@@ -908,12 +902,6 @@ Procedure for using a cryptographic hash function as PRNG:
 \eit
 }
 
-\section[Results]{Results}
-  \begin{frame}
-  \frametitle{Contents}
-  \tableofcontents[currentsection]
-  \end{frame}
-  
 %  
 %\frame{
 %\frametitle{Simulations}
@@ -1066,6 +1054,16 @@ The maximum ratio of selection probabilities is
 \hyperlink{nonuniform-lemma}{\beamerbutton{back}}
 
 \end{frame}
+
+
+\begin{frame}\label{sha256_tests}
+
+\todo{Insert table of p-values for several tests + several seeds}
+\hyperlink{sha256_procedure}{\beamerbutton{back}}
+
+\end{frame}
+
+
 
 \begin{frame}
 \frametitle{References}
