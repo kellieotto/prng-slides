@@ -2,9 +2,11 @@
 
 \usepackage{beamerthemesplit}
 \usepackage{graphicx}
-\usepackage{color, natbib, hyperref}
+\usepackage{color}
 \usepackage{bibentry}
+\usepackage{natbib}
 \nobibliography*
+\usepackage{hyperref}
 
 % Algorithm environment
 \usepackage{algpseudocode,algorithm,algorithmicx}
@@ -172,10 +174,41 @@
 \end{figure}
 }
 
+
+\begin{frame}
+\frametitle{Using computers to sample}
+
+\bit
+\itemsep10pt
+\item Social applications may require the PRNG to produce all possible samples -- e.g. jury duty summons, gaming machines, lottery tickets (\cite{marsaglia_seeds_2003})
+%\item \todo{think about if I want to include this} Impossibility bounds show that some statistics estimated from Monte Carlo distributions will have nontrivial bias (though we don't know which statistics) \hyperlink{impossibility_bounds}{\beamerbutton{here}}
+\item \todo{take a quote from Marsaglia paper, saying that PRNGs with large state space are good enough for this}
+\eit
+\end{frame}
+
+
 \frame{
 \frametitle{Simple Random Sampling}
 \textbf{Simple random sampling:} drawing $k$ objects from a group of $n$ in such a way that all $n\choose k$ possible subsets are equally likely \\
-\vspace{15pt}
+
+In practice, it is difficult to draw truly random samples.
+\vspace{20pt}
+
+Instead, people tend to draw samples using
+\bit
+\item A \textbf{pseudorandom number generator} (PRNG) that produces sequences of bits
+\item An algorithm that maps a set of pseudorandom numbers into a subset of the population
+\eit
+\vspace{20pt}
+
+Most people take for granted that this procedure is a sufficient approximation to simple random sampling.
+
+}
+
+\frame{
+\frametitle{Simple Random Sampling}
+
+\vspace{20pt}
 
 If there is a problem generating SRSs, it will be even worse for other methods: permutation, bootstrap samples, MCMC, Monte Carlo integration...
 
@@ -191,22 +224,6 @@ Permutations & $n!$ & $100! \approx 10^{158}$ \\
 \end{tabular}
 \end{center}
 \end{table}%
-
-}
-
-\frame{
-\frametitle{Simple Random Sampling}
-In practice, it is difficult to draw truly random samples.
-\vspace{20pt}
-
-Instead, people tend to draw samples using
-\bit
-\item A \textbf{pseudorandom number generator} (PRNG) that produces sequences of bits
-\item An algorithm that maps a set of pseudorandom numbers into a subset of the population
-\eit
-\vspace{20pt}
-
-Most people take for granted that this procedure is a sufficient approximation to simple random sampling.
 }
 
 
@@ -280,24 +297,14 @@ $2084! \approx 3 \times 10^{6013}$\\
 }
 
 
-\begin{frame}[label = pigeonhole]
-\frametitle{Pigeons and Pigeonholes}
-But does it \textit{really} matter in practice?
-
-\bit
-\itemsep10pt
-\item Social applications may require the PRNG to produce all possible samples -- e.g. jury duty summons, gaming machines, lottery tickets (\cite{marsaglia_seeds_2003})
-\item \todo{think about if I want to include this} Impossibility bounds show that some statistics estimated from Monte Carlo distributions will have nontrivial bias (though we don't know which statistics) \hyperlink{impossibility_bounds}{\beamerbutton{here}}
-\eit
-\end{frame}
-
-
 
 \frame{
 \frametitle{Overview}
 \bit
+\itemsep10pt
 \item Some sampling algorithms are better than others -- look under the hood of your software
 \item PRNGs for Statistical applications should be judged on how well they produce random samples when passed into a reasonable sampling algorithm
+\item I will show
 \bit
 \item New tests for pseudorandomness
 \item New PRNGs
@@ -468,7 +475,7 @@ Stata & ? & ? \\
 
 \bit
 \item Stata blogs recommend people use PIKK when coding up sampling themselves. But Stata's sort function is randomized by default. Not reproducible! (\cite{schumm_stata_2006})
-\item \todo{R bug report}
+\item R creates random integers the ``wrong'' way -- working to submit a \href{https://bugs.r-project.org/bugzilla/}{bug report}
 \eit
 }
 
@@ -518,7 +525,7 @@ PRNGs can't do this perfectly.
 \item Desirable, but not essential:
 \bit 
 \item Jump-ahead feature to efficiently skip through random numbers, generate multiple streams for parallel applications
-\item \todo{}
+\item Easy seeding: should be simple to set the state from the seed, robust to value supplied
 \eit
 \eit
 }
@@ -664,8 +671,12 @@ Test proposals:
 
 
 
-\section[Common PRNGs]{Common PRNGs}
-
+\section[PRNGs]{PRNGs}
+  \begin{frame}
+  \frametitle{Contents}
+  \tableofcontents[currentsection]
+  \end{frame}
+  
 \frame{
 \frametitle{Linear Congruential Generators}
 LCGs have the form
@@ -888,7 +899,7 @@ Procedure for using a cryptographic hash function as PRNG:
 \end{enumerate}
 
 \vspace{15pt}
-This PRNG passes the tests described. \hyperlink{sha256_tests}{\beamerbutton{see appendix}}
+PRNG based on the SHA256 hash function passes the tests described. \hyperlink{sha256_tests}{\beamerbutton{see appendix}}
 \end{frame}
 
 \frame{
@@ -921,7 +932,7 @@ This PRNG passes the tests described. \hyperlink{sha256_tests}{\beamerbutton{see
 %}
 
 \frame{
-\frametitle{Simulations}
+\frametitle{Sampling tests}
 \begin{figure}[htbp]
 \begin{center}
 \includegraphics[width = \textwidth]{fig/prng-comparison-range-n13-sbi}
@@ -929,19 +940,20 @@ This PRNG passes the tests described. \hyperlink{sha256_tests}{\beamerbutton{see
 \end{figure}
 }
  
-\frame{
-\frametitle{Simulations}
-\begin{figure}[htbp]
-\begin{center}
-\includegraphics[width = \textwidth]{fig/prng-comparison-chisq-n13-sbi}
-\end{center}
-\end{figure}
-}
+%\frame{
+%\frametitle{Simulations}
+%\begin{figure}[htbp]
+%\begin{center}
+%\includegraphics[width = \textwidth]{fig/prng-comparison-chisq-n13-sbi}
+%\end{center}
+%\end{figure}
+%}
 
 \frame{
-\frametitle{Simulations}
+\frametitle{Sampling tests}
 \todo{summarize sim results}
 \bit
+\item Results are similarly indeterminate for the chi-squared test
 \item Even though sampling $k$ from $n$ is complementary to sampling $n-k$ from $n$, the resulting samples are not equally uniform
 \item None of the 3 PRNGs is best overall -- results vary by seed value
 \item $p$-value curves tend to dip around $5\times 10^6$ samples -- trade-off between statistical power and equidistribution of PRNG?
@@ -950,21 +962,20 @@ This PRNG passes the tests described. \hyperlink{sha256_tests}{\beamerbutton{see
 
 \frame{
 \frametitle{Next steps}
-%\todo{
 
 Theoretical:
 \bit
-\item Study the properties of hash function PRNGs
 \item Understand how the equidistribution of a PRNG relates to how uniformity of sampling frequencies over different segments of the period
 \item Implement a sequential hypothesis test for uniformity of samples
+\item Account for multiple testing over many seeds
 \eit
 Practical:
 \bit
-\item Find examples where results of a study would change from using a better SA/PRNG
-\item Add these statistical tests to a more thorough test battery for PRNGs for Statistics
+\item Find examples where results of a study would change from using a better sampling algorithm/PRNG
+\item Add the proposed statistical tests to a more thorough test battery for PRNGs for Statistics
 \item Create plug-in hash function PRNGs for R and Python
 \eit
-%}
+
 }
 
 
