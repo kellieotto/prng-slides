@@ -9,7 +9,8 @@
 \usepackage{hyperref}
 
 % Algorithm environment
-\usepackage{algpseudocode,algorithm,algorithmicx}
+\usepackage{algorithm,algorithmicx}
+\usepackage[noend]{algpseudocode}
 \newcommand*\Let[2]{\State #1 $\gets$ #2}
 
 
@@ -175,50 +176,58 @@
 }
 
 
-\begin{frame}
-\frametitle{Using computers to sample}
-
-\bit
-\itemsep10pt
-\item Social applications may require the PRNG to produce all possible samples -- e.g. jury duty summons, gaming machines, lottery tickets (\cite{marsaglia_seeds_2003})
-%\item \todo{think about if I want to include this} Impossibility bounds show that some statistics estimated from Monte Carlo distributions will have nontrivial bias (though we don't know which statistics) \hyperlink{impossibility_bounds}{\beamerbutton{here}}
-\item \todo{take a quote from Marsaglia paper, saying that PRNGs with large state space are good enough for this}
-\eit
-\end{frame}
 
 
 \frame{
 \frametitle{Simple Random Sampling}
-\textbf{Simple random sampling:} drawing $k$ objects from a group of $n$ in such a way that all $n\choose k$ possible subsets are equally likely \\
+\textbf{Simple random sampling:} drawing $k$ objects from a group of $n$ in such a way that all $n\choose k$ possible subsets are equally likely. \\
+\vspace{20pt}
 
 In practice, it is difficult to draw truly random samples.
 \vspace{20pt}
 
 Instead, people tend to draw samples using
-\bit
-\item A \textbf{pseudorandom number generator} (PRNG) that produces sequences of bits
-\item An algorithm that maps a set of pseudorandom numbers into a subset of the population
-\eit
+\begin{enumerate}
+\item A \textbf{pseudorandom number generator} (PRNG) that produces sequences of bits, plus
+\item A sampling algorithm that maps a set of pseudorandom numbers into a subset of the population
+\end{enumerate}
 \vspace{20pt}
 
 Most people take for granted that this procedure is a sufficient approximation to simple random sampling.
 
 }
 
+
+\begin{frame}
+\frametitle{Using computers to sample}
+
+Social applications may require the PRNG to produce all possible samples -- e.g. jury duty summons, gaming machines, lottery tickets.
+%\item \todo{think about if I want to include this} Impossibility bounds show that some statistics estimated from Monte Carlo distributions will have nontrivial bias (though we don't know which statistics) \hyperlink{impossibility_bounds}{\beamerbutton{here}}
+
+\vspace{10pt}
+\begin{block}{\cite{marsaglia_seeds_2003}}
+The preceding examples indicate that social applications may require the [PRNG] is able to select from every possible outcome, a requirement that can be satisfied with RNGs having many random seed values... Thus, multiple-seed [PRNGs] seem desirable for some applications and mandatory for others.
+\end{block}
+
+\vspace{10pt}
+But passing PRNs into a sampling algorithm adds an additional layer to the problem.
+
+\end{frame}
+
 \frame{
 \frametitle{Simple Random Sampling}
 
+
+If PRNGs are unable to generate all simple random samples, the problem will be even worse for other methods: permutation, bootstrap samples, MCMC, Monte Carlo integration...
+
 \vspace{20pt}
-
-If there is a problem generating SRSs, it will be even worse for other methods: permutation, bootstrap samples, MCMC, Monte Carlo integration...
-
 \begin{table}[htdp]
-{Number of possibilities for $n = 100$, $k = 50$}
+{Number of possible samples for $n = 100$, $k = 50$}
 \begin{center}
 \begin{tabular}{l|c|c}
-\hline
-SRSs & $n \choose k$ & ${100 \choose 50} \approx 10^{29}$ \\
-Bootstrap Samples& $n^k$ & $100^{50} = 10^{100}$ \\
+\hline 
+SRSs & $n \choose k$ & ${100 \choose 50} \approx 10^{29}$ \\ [1em]
+Bootstrap Samples& $n^k$ & $100^{50} = 10^{100}$ \\ [1em]
 Permutations & $n!$ & $100! \approx 10^{158}$ \\
 \hline 
 \end{tabular}
@@ -228,13 +237,13 @@ Permutations & $n!$ & $100! \approx 10^{158}$ \\
 
 
 \frame{
-\frametitle{PRNGs}
+\frametitle{Pseudorandom number generators (PRNGs)}
 
 A PRNG is a deterministic function with several components:
 \bit
-\item A user-supplied seed value used to set the internal state
-\item A function that maps the internal state to random bits
-\item A function that updates the internal state 
+\item A user-supplied \textbf{seed value} used to set the internal state
+\item A function that maps the \textbf{internal state to random bits}
+\item A function that \textbf{updates the internal state}
 \eit
 
 \begin{center}
@@ -280,19 +289,25 @@ If ${n \choose k}$ is greater than the size of a PRNG's state space, then the PR
 \frame{
 \frametitle{Pigeons and Pigeonholes}
 
-Period of 32-bit linear congruential generators: \\
+Period of 32-bit linear congruential generators (the most basic acceptable PRNG): \\
 \setlength{\parindent}{10ex} at most $2^{32} \approx 4 \times 10^9$ \\
+\vspace{5pt}
 % (some poorly designed ones have an even shorter period) \\
 \noindent Samples of size $10$ from $50$: \\
 ${50 \choose 10} \approx 10^{10}$ \\
+\vspace{5pt}
+
 \noindent \textbf{More than half of samples cannot be generated}
 \vspace{20pt}
 \pause
 
 \noindent Period of Mersenne Twister (standard PRNG in Statistics): \\
 $2^{32 \times 624} \approx 2 \times 10^{6010}$ \\
+\vspace{5pt}
+
 \noindent Permutations of $2084$ objects: \\
 $2084! \approx 3 \times 10^{6013}$\\
+\vspace{5pt}
 \noindent\textbf{Less than $0.01\%$ of permutations can be generated}
 }
 
@@ -304,12 +319,16 @@ $2084! \approx 3 \times 10^{6013}$\\
 \itemsep10pt
 \item Some sampling algorithms are better than others -- look under the hood of your software
 \item PRNGs for Statistical applications should be judged on how well they produce random samples when passed into a reasonable sampling algorithm
-\item I will show
+\eit
+
+\begin{block}{}
+I will show
 \bit
-\item New tests for pseudorandomness
-\item New PRNGs
+\item New tests for pseudorandomness based on simple random sampling
+\item New PRNGs based on cryptographic hash functions
 \eit
-\eit
+\end{block}
+
 }
 
 
@@ -358,7 +377,7 @@ Two general strategies:
 
 
 
-\frame{
+\begin{frame}\label{fykd}
 \frametitle{Shuffling algorithms}
 \bit
 \item Knuth shuffle: requires $n-1$ random integers, but no sorting. This is what \texttt{np.random.choice} does.
@@ -373,10 +392,11 @@ Two general strategies:
 \State{Take the first $k$ to be the sample}
 \end{algorithmic}
 \end{algorithm}
-\todo{put proof that shuffle works in appendix}
+\hyperlink{fykd-proof}{\beamerbutton{Proof}}
+
 \item Reservoir algorithms: Algorithm R (Waterman, Knuth 1997), Algorithm Z (Vitter 1985) are related to shuffling and don't require knowing the population size a priori
 \eit
-}
+\end{frame}
 
 
 \frame{
@@ -411,11 +431,7 @@ Two general strategies:
 \frametitle{Generating (non)uniform integers}
 \bit
 \item These algorithms depend on uniformly distributed integers
-\item A common way to get integers in the range $\{1, \dots, m\}$ is $X = \lfloor m U\rfloor + 1$, $U \sim U[0,1)$.
-%\bit
-%\item $U$ is uniform on $\{0, 2^{-w}, 2\times 2^{-w}, \dots, (2^w - 1)\times2^{-w}\}$
-%\item $mU$ is uniform on $\{0, m2^{-w}, 2m\times 2^{-w}, \dots, (2^w - 1)m\times2^{-w}\}$
-%\eit
+\item A common way to obtain an integer in the range $\{1, \dots, m\}$ using a PRN $U$ on $[0, 1)$ is $\lfloor m U\rfloor + 1$.
 \item Unless $m$ is a multiple of $2^w$, $\lfloor mU \rfloor$ will not truly be uniform! (\cite{knuth_art_1997})
 \eit
 
@@ -425,6 +441,7 @@ For $m < 2^w$, the ratio of the largest to smallest selection probability is, to
 
 \hyperlink{nonuniform-proof}{\beamerbutton{Proof}}
 
+\todo{think carefully about important values of $m$ and $w$}
 \end{frame}
 
 
@@ -463,9 +480,9 @@ Generate a $w$-bit integer $J$. If $J > m$, discard and repeat.
 \begin{tabular}{l|c|c}
 Package & Sampling algorithm & Random integer algorithm \\
 \hline
-R & random indices & variant of floor method \\
-Python \texttt{random} & random indices & discard method \\
-Numpy \texttt{random} & shuffle and keep $k$ & discard method \\
+R & random indices & variant of floor method \\ [0.5em]
+Python \texttt{random} & random indices & discard method \\[0.5em]
+Numpy \texttt{random} & shuffle and keep $k$ & discard method \\[0.5em]
 Stata & ? & ? \\
 \hline 
 \end{tabular}
@@ -507,7 +524,7 @@ Stata & ? & ? \\
 \pause
 PRNGs can't do this perfectly.
 \bit
-\item They are deterministic. Knowing input tells you the output.
+\item They are \textbf{deterministic}: knowing input tells you the output.
 \item Most are \textbf{periodic}: they eventually produce the same sequence of values.
 \item They have some predictable mathematical structure.
 \eit
@@ -536,11 +553,11 @@ PRNGs can't do this perfectly.
 \frametitle{Testing PRNGs}
 \bit
 \itemsep 10pt
-\item ``Independent'' and ``uniform'' are broad criteria -- many ways to define and check for these properties
+\item ``Uniform'' and ``independent'' are broad criteria -- many ways to define and check for these properties
 \bit
 \itemsep 10pt
 \item Uniformity at varying levels of granularity
-\item Correlations within and between subsequences
+\item Independence within and between subsequences
 \eit
 \item Test batteries: 
 \bit
@@ -607,7 +624,7 @@ $$\nu_d = 1/\max{\text{distance between parallel hyperplanes}}$$
 
 
 \frame{
-\frametitle{Testing PRNGs}
+\frametitle{New tests for PRNGs}
 
 \bit
 \item Some sampling algorithms use PRNGs in ways that are not covered by these tests
@@ -618,7 +635,7 @@ $U_j$ is uniform on $\{1, \dots, n - j + 1\}$
 \item The sequences $(U_1, \dots, U_k)$ should themselves be equiprobable
 \eit
 \pause
-\item Test by generating a large ``sample'' of $B$ SRSs
+\item \textbf{Proposal:} test by generating a large ``sample'' of $B$ SRSs
 
 \begin{align*}
 H_0&: \pr(\text{SRS}_i ) = \frac{1}{{n\choose k}} \text{ for all ${n\choose k}$ possible SRSs} \\
@@ -634,18 +651,81 @@ H_1&: \pr(\text{SRS}_i ) \neq \frac{1}{{n\choose k}}\text{ for some SRS}
 
 
 \frame{
-\frametitle{Testing PRNGs}
-Test proposals:
+\frametitle{New tests for PRNGs}
 
-\bit
-\item Chi-squared or range test
-\item Sequential probability ratio test
-\eit
+\textbf{Chi-squared or range test:} generate a fixed number of samples starting with seed $\mathcal{S}$ and look at sample frequencies.
+
+\begin{figure}[htbp]
+\begin{center}
+\includegraphics[width = 0.8\textwidth]{fig/prng-seeds-lineplot.pdf}
+\end{center}
+\end{figure}
+Unsatisfactory: how do we choose number of samples?
+
 }
 
 \frame{
-\frametitle{SPRT}
-\todo{}
+\frametitle{Sequential probability ratio test}
+
+
+\bit
+\item A \textbf{sequential probability ratio test} is a hypothesis testing procedure that weighs the evidence of each observation as it comes in (\cite{wald_sequential_1973})
+\item Tests $H_0: (X_n) \sim f_0$ against $H_1: (X_n) \sim f_1$ by checking the likelihood ratio (LR) after each observation
+\eit
+
+\begin{algorithm}[H]                      % enter the algorithm environment
+\caption{Sequential probability ratio test}          % give the algorithm a caption
+\label{algo:sprt}                           % and a label for \ref{} commands later in the document
+\begin{algorithmic}[1]             % enter the algorithmic environment
+\Let{$\alpha, \beta$}{desired type I and II error rates}
+%\Let{$A$}{$\frac{\beta}{1-\alpha}$}
+%\Let{$B$}{$\frac{1-\beta}{\alpha}$}
+\Let{$LR$}{1}
+\While{$\frac{\beta}{1-\alpha} < LR < \frac{1-\beta}{\alpha}$}
+     \Let{$X_m$}{A new observation}
+     \Let{$LR$}{$LR \times \frac{f_1(X_m)}{f_0(X_m)}$}
+\EndWhile
+\If{$LR \leq \frac{\beta}{1-\alpha}$}\State{\text{Fail to reject the null hypothesis; stop}}
+\EndIf
+\If{$LR \geq  \frac{1-\beta}{\alpha}$}\State{\text{Reject the null hypothesis; stop}}
+\EndIf
+\end{algorithmic}
+\end{algorithm}
+
+}
+
+\frame{
+\frametitle{Sequential probability ratio test}
+Sequential test for multinomial random variables: reduce it to a comparison of Bernoullis
+\bit
+\item Fix $s$ and define $$B(n) \equiv \mathbb{I}(\footnotesize{\text{$n$th sample is among the $s$ most frequent samples before step $n$}})$$
+\item $B(n) \sim \text{Bernoulli}(p)$. Then we may test
+
+\begin{align*}
+H_0&: p = p_0 = s{ n\choose k}^{-1} \\
+H_1&: p = p_1 > s{ n\choose k}^{-1}
+\end{align*}
+
+\item \textbf{Peculiar:} $B(n)$ depends on the samples that have been observed before the $n$th! \\
+
+But under the null, $p_0$ is fixed and doesn't depend on what the samples actually are.
+\eit
+}
+
+
+\frame{
+\frametitle{Sequential probability ratio test}
+\textbf{Preliminary results:}
+
+\bit
+\item Simulations show that the test has the correct level under the null
+\item Issues of power: how to choose $s$ and $p_1$? Depends on what we believe the alternative is.
+\begin{figure}[htbp]
+\begin{center}
+\includegraphics[width = 0.8\textwidth]{fig/sample-freq-hist.pdf}
+\end{center}
+\end{figure}
+\eit
 }
 
 %\frame{
@@ -886,20 +966,59 @@ Cryptographic hash functions:
 }
 
 
+\begin{frame}
+\frametitle{Hash function PRNGs}
+
+Hash function PRNGs are a subset of a wide range of \textbf{cryptographically secure PRNGs}:
+\vspace{10pt}
+\bit
+\item NIST gives guidelines on using hash functions and stream ciphers for cryptographically secure PRNGs (\cite{barker_nist_2015})
+\item The OpenBSD OS uses the ChaCha20 stream cipher to generate PRNs (\cite{openbsd_arc4random_2014, chacha_bernstein_208})
+\item Hash function PRNGs have been recommended for random selection of committees and election auditing (\cite{publicly_motorola_2004, rivest_reference_2011})
+\eit
+\vspace{10pt}
+
+These PRNGs are usually written in low level languages, not in widely used statistical software.
+\end{frame}
+
+
+
+
 \begin{frame}\label{sha256_procedure}
 \frametitle{Hash function PRNGs}
-Procedure for using a cryptographic hash function as PRNG:
-\begin{enumerate}
-\item Set a seed, a large random integer
-\item Set the counter to $0$
-\item Set the state to be ``seed,counter''
-\item Hash the state value. This is your random number (expressed in hexadecimal).
-\item Increment the counter
-\item Repeat Steps 2-5 as many times as needed
-\end{enumerate}
 
-\vspace{15pt}
-PRNG based on the SHA256 hash function passes the tests described. \hyperlink{sha256_tests}{\beamerbutton{see appendix}}
+Procedure for using a cryptographic hash function as PRNG:
+%\begin{enumerate}
+%\item Set a seed, a large random integer
+%\item Set the counter to $0$
+%\item Set the state to be ``seed,counter''
+%\item Hash the state value. This is your random number (expressed in hexadecimal).
+%\item Increment the counter
+%\item Repeat Steps 2-5 as many times as needed
+%\end{enumerate}
+
+
+\begin{algorithm}[H]                      % enter the algorithm environment
+\caption{Hash function PRNG}          % give the algorithm a caption
+\label{hash_prng}                           % and a label for \ref{} commands later in the document
+\begin{algorithmic}[1]             % enter the algorithmic environment
+\Let{seed}{a large random integer}
+\Let{counter}{$0$}
+\For{the number of PRNs desired}
+     \Let{internal state}{``seed,counter''}
+     \State{Hash the internal state value. This is your random number (expressed in hexadecimal).}
+     \Let{counter}{counter$ + 1$}
+\EndFor
+\end{algorithmic}
+\end{algorithm}
+
+
+We use the SHA256 hash function:
+
+\bit
+\item tested against a reference implementation (\cite{rivest_reference_2011}) 
+\item passes the tests described earlier. \hyperlink{sha256_tests}{\beamerbutton{see appendix}}
+\eit
 \end{frame}
 
 \frame{
@@ -940,22 +1059,17 @@ PRNG based on the SHA256 hash function passes the tests described. \hyperlink{sh
 \end{figure}
 }
  
-%\frame{
-%\frametitle{Simulations}
-%\begin{figure}[htbp]
-%\begin{center}
-%\includegraphics[width = \textwidth]{fig/prng-comparison-chisq-n13-sbi}
-%\end{center}
-%\end{figure}
-%}
 
 \frame{
 \frametitle{Sampling tests}
-\todo{summarize sim results}
 \bit
 \item Results are similarly indeterminate for the chi-squared test
-\item Even though sampling $k$ from $n$ is complementary to sampling $n-k$ from $n$, the resulting samples are not equally uniform
 \item None of the 3 PRNGs is best overall -- results vary by seed value
+\bit
+\item SHA256 PRNG should behave like ``random oracle'' and results should not vary by seed
+\item What is the right way to aggregate results across seeds?
+\eit
+\item Even though sampling $k$ from $n$ is complementary to sampling $n-k$ from $n$, the resulting samples are not equally uniform
 \item $p$-value curves tend to dip around $5\times 10^6$ samples -- trade-off between statistical power and equidistribution of PRNG?
 \eit
 }
@@ -1034,9 +1148,30 @@ Therefore,
 \hyperlink{pigeonhole}{\beamerbutton{back}}
 }
 
+
+
+\begin{frame}[label = fykd-proof]
+\footnotesize
+\begin{proof}[Fisher-Yates-Knuth-Durstenfeld Shuffle]
+We prove by induction that the FYKD the algorithm gives all possible permutations of $\{1, \dots, n\}$ with equal probability, and thus all possible orderings of the first $k$ have equal probability too.
+When $n=2$, this is trivial.  We sample $J=1$ with probability $\frac{1}{2}$ to get the ordered pair $(2, 1)$ or sample $J=2$ with probability $\frac{1}{2}$ to get the ordered pair $(1, 2)$. \\
+\vspace{10pt}
+
+Suppose the algorithm works for $n = 1, \dots, j$ and we're at the $j+1$st step.  There are two possibilities:
+\begin{enumerate}
+\item $J= j+1$ with probability $\frac{1}{j+1}$. Then we don't swap anything and we simply append $j+1$ to the other permutations.  This enumerates $j!$ permutations.
+\item $J = i < j+1$ with probability $\frac{1}{j+1}$.  Then we swap $i$ with $j+1$.  There are $j!$ equally likely ways that the first $j$ items may be arranged, and $j$ possible choices for $J$.   This enumerates $j(j!)$ permutations.
+\end{enumerate}
+
+Therefore, at the $j+1$st step there are $(j+1)(j!) = (j+1)!$ equally likely permutations we could construct.
+\end{proof}
+\hyperlink{fykd}{\beamerbutton{back}}
+
+\end{frame}
+
 \begin{frame}[label = nonuniform-proof]
 \tiny
-\begin{proof}
+\begin{proof}[Non-uniform random sampling probabilities]
 Define $Y = \lfloor mX \rfloor + 1$ and $\tilde{X}$ to be a uniform random integer on $\{0, 1, \dots, 2^w - 1\}$ (while $X$ has the same distribution scaled by $2^{-w}$).
 The selection probability for a particular integer value is 
 \begin{align*}
