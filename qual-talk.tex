@@ -370,7 +370,7 @@ Two general strategies:
 \item Possibly the basis for the \texttt{sample} function in Stata
 \eit
 
-\todo{who else recommends PIKK? do a lit search}
+%\todo{who else recommends PIKK? do a lit search}
 
 }
 
@@ -441,7 +441,7 @@ For $m < 2^w$, the ratio of the largest to smallest selection probability is, to
 
 \hyperlink{nonuniform-proof}{\beamerbutton{Proof}}
 
-\todo{think carefully about important values of $m$ and $w$}
+%\todo{think carefully about important values of $m$ and $w$}
 \end{frame}
 
 
@@ -1054,7 +1054,7 @@ We use the SHA256 hash function:
 \frametitle{Sampling tests}
 \begin{figure}[htbp]
 \begin{center}
-\includegraphics[width = \textwidth]{fig/prng-comparison-range-n13-sbi}
+\includegraphics[width = 1.1\textwidth]{fig/prng-comparison-range-n13-sbi}
 \end{center}
 \end{figure}
 }
@@ -1063,14 +1063,23 @@ We use the SHA256 hash function:
 \frame{
 \frametitle{Sampling tests}
 \bit
-\item Results are similarly indeterminate for the chi-squared test
 \item None of the 3 PRNGs is best overall -- results vary by seed value
 \bit
 \item SHA256 PRNG should behave like ``random oracle'' and results should not vary by seed
 \item What is the right way to aggregate results across seeds?
 \eit
+\pause
+\item Results vary by sample size $k$
+\bit
 \item Even though sampling $k$ from $n$ is complementary to sampling $n-k$ from $n$, the resulting samples are not equally uniform
 \item $p$-value curves tend to dip around $5\times 10^6$ samples -- trade-off between statistical power and equidistribution of PRNG?
+\eit
+\pause
+\item Other tests
+\bit 
+\item Results are similarly indeterminate for the chi-squared test
+\item Working towards implementing the sequential probability ratio test
+\eit
 \eit
 }
 
@@ -1203,7 +1212,31 @@ The maximum ratio of selection probabilities is
 
 \begin{frame}\label{sha256_tests}
 
-\todo{Insert table of p-values for several tests + several seeds}
+
+\begin{table}[htdp]
+\caption{\large{$p$-values from selected tests on the SHA256 PRNG}}
+\begin{tabular}{|r|r|c|c|c|c|c|c|}
+\hline
+Seed & Samples & $\chi^2$ & Range & KS & KS Diffs & Gaps \\
+\hline
+100	& $1e4$ & 0.295  & 0.797  & 0.630 & 0.748 & 0.964 \\
+100	& $5.6e5$ & 0.814 & 0.183 & 0.863 & 0.623 & 0.090  \\
+100	& $1e6$ & 0.805 & 0.516 & 0.816 & 0.833 & 0.103 \\
+\hline
+233424280 & $1e4$ & 0.245 & 0.543 & 0.066 & 0.573 & 0.217 \\
+233424280 & $5.6e5$ & 0.232 & \textbf{0.006} & 0.788 & 0.982 & 0.476 \\
+233424280 & $1e6$ & 0.210  & 0.857 & 0.561 & 0.988 & 0.544 \\
+\hline
+429496729 & $1e4$ & 0.914 & 0.952 & \textbf{0.019} & 0.869 & 0.882 \\
+429496729 & $5.6e5$ & 0.461 & 0.674 & 0.348 & 0.820 & 0.145 \\
+429496729 & $1e6$ & 0.781 & 0.906 & 0.714 & 0.393 & 0.222\\
+\hline
+\end{tabular}
+\label{default}
+\end{table}%
+
+\small See \url{https://github.com/kellieotto/prng-slides/blob/master/code/sha256-tests.ipynb} for details.
+
 \hyperlink{sha256_procedure}{\beamerbutton{back}}
 
 \end{frame}
