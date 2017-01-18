@@ -394,7 +394,7 @@ Two general strategies:
 \end{algorithm}
 \hyperlink{fykd-proof}{\beamerbutton{Proof}}
 
-\item Reservoir algorithms: Algorithm R (Waterman, Knuth 1997), Algorithm Z (Vitter 1985) are related to shuffling and don't require knowing the population size a priori
+\item Reservoir algorithms: Algorithm R (\cite{knuth_art_1997}), Algorithm Z (\cite{vitter_random_1985}) are related to shuffling and don't require knowing the population size a priori
 \eit
 \end{frame}
 
@@ -430,11 +430,14 @@ Two general strategies:
 \begin{frame}[label = nonuniform-lemma]
 \frametitle{Generating (non)uniform integers}
 \bit
-\item These algorithms depend on uniformly distributed integers
-\item A common way to obtain an integer in the range $\{1, \dots, m\}$ using a PRN $U$ on $[0, 1)$ is $\lfloor m U\rfloor + 1$.
+\item These algorithms depend on uniformly distributed integers.
+\item A common way to obtain an integer in the range $\{1, \dots, m\}$:
+\bit
+\item Generate a PRN $U$ on $[0, 1)$, take $\lfloor m U\rfloor + 1$
+\item But $U$ is not really continuous -- it can only take $2^w$ values (where $w$ is number of bits in PRNG output)
 \item Unless $m$ is a multiple of $2^w$, $\lfloor mU \rfloor$ will not truly be uniform! (\cite{knuth_art_1997})
 \eit
-
+\eit
 \begin{lemma}
 For $m < 2^w$, the ratio of the largest to smallest selection probability is, to first order,  $1+ m 2^{-w}$.
 \end{lemma}
@@ -696,7 +699,7 @@ Unsatisfactory: how do we choose number of samples?
 
 \frame{
 \frametitle{Sequential probability ratio test}
-Sequential test for multinomial random variables: reduce it to a comparison of Bernoullis
+Sequential test for multinomial random variables: reduce it to a comparison of Bernoullis (\cite{weiss_sequential_1962})
 \bit
 \item Fix $s$ and define $$B(n) \equiv \mathbb{I}(\footnotesize{\text{$n$th sample is among the $s$ most frequent samples before step $n$}})$$
 \item $B(n) \sim \text{Bernoulli}(p)$. Then we may test
@@ -872,9 +875,9 @@ The period of an LCG is $m$ for all seeds $X_0$ if and only if
 \end{center}
 
 \bit
-\item A ``twisted'' generalized linear feedback shift register: a complicated sequence of bitwise and linear operations
+\item Mersenne Twister (MT) is a ``twisted'' generalized linear feedback shift register: a complex sequence of bitwise and linear operations
 \item Enormous period of $2^{19937} - 1$, a Mersenne prime
-\item $k$-distributed to 32-bit accuracy for $1 \leq k \leq 623$, i.e. tuples of up to length $623$ occur with equal frequency over the entire period
+\item $k$-distributed to 32-bit accuracy for $k \leq 623$, i.e. tuples of up to length $623$ occur with equal frequency over the period
 \item Integer seed is used to set the state, a $624 \times 32$ binary matrix
 \eit 
 }
@@ -892,12 +895,12 @@ The period of an LCG is $m$ for all seeds $X_0$ if and only if
 }
 
 \frame{
-\frametitle{Sample uniformity}
+\frametitle{Sample uniformity with MT}
 
 \bit
-\item Generate samples using MT with a single seed, increasing number of samples 
+\item Generate samples using MT; compute p-values for increasing number of samples 
 \item PIKK requires $n$ PRNs; sample\_by\_index requires only $k$ PRNs
-\item No straightforward pattern in how uniform the samples are
+\item No straightforward pattern in $p$-values from these two algorithms
 \eit
 
 \begin{figure}[htbp]
@@ -911,8 +914,11 @@ The period of an LCG is $m$ for all seeds $X_0$ if and only if
 
 \frame{
 \frametitle{A better alternative}
-
-\textbf{One solution:} Find a class of PRNGs with infinite state space
+\begin{center}
+\textbf{One solution to the pigeonhole problem:} \\   
+\vspace{20pt}
+A class of PRNGs with infinite state space
+\end{center}
 }
 
 \frame{
