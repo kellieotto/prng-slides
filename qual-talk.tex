@@ -539,11 +539,15 @@ PRNGs can't do this perfectly.
 \frametitle{What makes a PRNG}
 
 \bit
-\item Mimics a random sequence (statistically indistinguishable)
-\item Unpredictable. This is different from random - if it's deterministic, then it's predictable to some degree
+\item Mimics a random generator
+\bit
+\item Cryptography definition: No application of the PRNG should behave differently from a ``random oracle''
+\item Stats definition: We cannot reject the null hypothesis that the outputs come from a uniform distribution
+\eit
 \item Fast and memory efficient
 \item Desirable, but not essential:
 \bit 
+\item Unpredictable. This is different from random - if it's deterministic, then it's predictable to some degree. Important in cryptography, less important in Statistics.
 \item Jump-ahead feature to efficiently skip through random numbers, generate multiple streams for parallel applications
 \item Easy seeding: should be simple to set the state from the seed, robust to value supplied
 \eit
@@ -573,25 +577,29 @@ PRNGs can't do this perfectly.
 }
 
 
-\frame{
+\begin{frame}
 \frametitle{Testing for uniformity}
 \begin{enumerate}
 \item Kolmogorov-Smirnov test: values should appear IID $U[0,1]$
 \pause
 \item Chi-squared test: break values or sequences of values into categories with known frequencies under the null
 \pause
+\label{range_test}
 \item \textbf{New proposal:} Range test \\
 
 Break values into equally probable categories and compute the range of observed frequencies
 
 $$ R = \max_{i} O_i - \min_i O_i$$
 
-$R$ has a complicated distribution based on multinomial distribution... use asymptotic approximation from \citet{young_two_1962}: 
+$R$ has a complicated distribution... use asymptotic approximation from \citet{young_two_1962}: 
 
 $$\pr(R \leq r) \approx P(W_N \leq (r-(2B)^{-1})(N/B)^{1/2})$$
-where $W_N$ denotes the sample range of $N$ independent standard normal random variables.
+where $W_N$ denotes the sample range of $N$ independent standard normal random variables and $B$ is the number of multinomial draws.
+
+\hyperlink{range_power}{\beamerbutton{Power}}
+
 \end{enumerate}
-}
+\end{frame}
 
 
 \frame{
@@ -609,14 +617,15 @@ where $W_N$ denotes the sample range of $N$ independent standard normal random v
 
 
 \frame{
-\frametitle{Geometric tests}
-\bit
-\item Some PRNGs generate points with geometric structure (more on this later)
-\item The \textbf{spectral test} in dimension $d$ considers a set of parallel hyperplanes that covers all points $(x_n, \dots, x_{n+d - 1})$.
-$$\nu_d = 1/\max{\text{distance between parallel hyperplanes}}$$
-\eit
-
+\frametitle{Compressability tests}
  Idea: More information needed to describe structure $\iff$ less correlation between consecutive PRNs
+
+
+\begin{enumerate}
+\item Compressability test: measures entropy in sequences of PRNs
+\item Spectral test in dimension $d$: measures the maximum distance between parallel hyperplanes that cover all points in a sequence
+\end{enumerate}
+
 
 \begin{figure}
 \includegraphics[width = 0.25\textwidth]{fig/lcg_2d}\includegraphics[width = 0.25\textwidth]{fig/lcg_3d} \\
@@ -894,23 +903,6 @@ The period of an LCG is $m$ for all seeds $X_0$ if and only if
 \eit
 }
 
-\frame{
-\frametitle{Sample uniformity with MT}
-
-\bit
-\item Generate samples using MT; compute p-values for increasing number of samples 
-\item PIKK requires $n$ PRNs; sample\_by\_index requires only $k$ PRNs
-\item No straightforward pattern in $p$-values from these two algorithms
-\eit
-
-\begin{figure}[htbp]
-\begin{center}
-\includegraphics[width = .8\textwidth]{fig/prng-sa-lineplot}
-\end{center}
-\end{figure}
-
-}
-
 
 \frame{
 \frametitle{A better alternative}
@@ -1030,7 +1022,7 @@ We use the SHA256 hash function:
 \frame{
 \frametitle{Hash function PRNGs}
 \bit
-\item Efficient: based on fast, pre-existing hash function code. Some cryptographic hash functions are even built into hardware (e.g. AES and Intel)
+\item Efficient: based on fast, pre-existing hash function code. Some cryptographic hash primitives are even built into hardware (e.g. AES block cipher is on all Intel processors)
 \item Memory efficient: only need to store the seed and counter
 \item Unpredictable: small changes to input produce large unpredictable changes to output. The only way to figure out the sequence is to know the seed.
 \item Jump ahead: add the desired number of steps to the counter
@@ -1069,16 +1061,17 @@ We use the SHA256 hash function:
 \frame{
 \frametitle{Sampling tests}
 \bit
-\item None of the 3 PRNGs is best overall -- results vary by seed value
+\item None of the 3  good PRNGs is best overall -- results vary by seed value
 \bit
 \item SHA256 PRNG should behave like ``random oracle'' and results should not vary by seed
-\item What is the right way to aggregate results across seeds?
+\item \textbf{Next step:} run tests for many seeds; p-values should be uniform under the null
 \eit
 \pause
 \item Results vary by sample size $k$
 \bit
-\item Even though sampling $k$ from $n$ is complementary to sampling $n-k$ from $n$, the resulting samples are not equally uniform
-\item $p$-value curves tend to dip around $5\times 10^6$ samples -- trade-off between statistical power and equidistribution of PRNG?
+\item Sampling $k$ from $n$ is complementary to sampling $n-k$ from $n$
+\item Resulting samples are not equally uniform -- a difference between theory and practice
+%\item $p$-value curves tend to dip around $5\times 10^6$ samples -- trade-off between statistical power and equidistribution of PRNG?
 \eit
 \pause
 \item Other tests
@@ -1094,7 +1087,6 @@ We use the SHA256 hash function:
 
 Theoretical:
 \bit
-\item Understand how the equidistribution of a PRNG relates to how uniformity of sampling frequencies over different segments of the period
 \item Implement a sequential hypothesis test for uniformity of samples
 \item Account for multiple testing over many seeds
 \eit
@@ -1108,7 +1100,87 @@ Practical:
 }
 
 
+\section[Other dissertation chapters]{Other dissertation chapters}
+  \begin{frame}
+  \frametitle{Contents}
+  \tableofcontents[currentsection]
+  \end{frame}
+
+
+
+\frame
+{
+  \frametitle{Permutation tests and gender bias}
+Are student evaluations of teaching (SET) a valid measure of teaching effectiveness? \\
+
+\vspace{15pt}
+In \href{https://www.scienceopen.com/document?vid=818d8ec0-5908-47d8-86b4-5dc38f04b23e}{Boring et al. (2016)}, we reanalyzed two datasets:
+
+\bit
+\item an online, randomized experiment from North Carolina State University
+\item a natural experiment at Sciences Po, Paris
+\eit
+
+\vspace{15pt}
+
+ We designed the permutation tests carefully to match the (implied) experimental design.
+\vspace{10pt}
+
+
+\pause
+\bit
+  \item SET measure ``customer satisfaction''
+  \item Ratings are biased against female instructors
+  \item Biases are inconsistent across universities and disciplines, so it's impossible to ``adjust'' SET
+\eit
+
+
+}
+
+
+
+
+\frame{
+\frametitle{Download \texttt{permute}!}
+
+Statisticians should worry about software development:
+\bit
+\item ethics: reproducibility crisis in science
+\item impact: enable people to use the methods we develop (correctly!)
+\eit
+
+\begin{figure}[htbp]
+\begin{center}
+\includegraphics[width=0.7\textwidth]{fig/permute}
+\end{center}
+\end{figure}
+
+\bit
+\item Open source software practices: the GitHub model
+\item Writing robust, useable code
+\item Unit testing and documentation
+\eit
+
+}
+
+
+\frame{
+\frametitle{Another chapter}
+Project ideas:
+
+\bit
+\item Permutation tests for inter-rater reliability
+\item Reproducibility lexicon
+\item Applications of permutation tests (linear models, paired categorical data)
+\eit
+}
+
+
 \section[Appendix]{Appendix}
+  \begin{frame}
+  \frametitle{Contents}
+  \tableofcontents[currentsection]
+  \end{frame}
 
 
 \begin{frame}[label = impossibility_bounds]
@@ -1214,6 +1286,29 @@ The maximum ratio of selection probabilities is
 \hyperlink{nonuniform-lemma}{\beamerbutton{back}}
 
 \end{frame}
+
+
+\begin{frame}\label{range_power}
+\frametitle{Power of the $\chi^2$ vs. Range test}
+
+Estimate the power for different $B$ (number of samples drawn) and $N$ (multinomial categories, $n \choose k$) under the following alternative hypothesis:
+\begin{itemize}
+\item All samples but two have probability $1/N$
+\item One sample has probability $0.95/N$, the other has probability $1.05/N$
+\item Reject the null hypothesis at level $1\%$
+\item Power is the observed rejection rate
+\end{itemize}
+
+\hyperlink{range_test}{\beamerbutton{back}}
+
+
+\includegraphics[width = \textwidth]{fig/powerplot.pdf}
+
+
+
+\end{frame}
+
+
 
 
 \begin{frame}\label{sha256_tests}
