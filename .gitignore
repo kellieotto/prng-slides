@@ -1,3 +1,7 @@
+## Sad that this needs to be included
+*.doc
+*.docx
+
 ## Core latex/pdflatex auxiliary files:
 *.aux
 *.lof
