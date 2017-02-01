@@ -189,7 +189,7 @@ In practice, it is difficult to draw truly random samples.
 Instead, people tend to draw samples using
 \begin{enumerate}
 \item A \textbf{pseudorandom number generator} (PRNG) that produces sequences of bits, plus
-\item A sampling algorithm that maps a set of pseudorandom numbers into a subset of the population
+\item A sampling algorithm that maps a sequence of pseudorandom numbers into a subset of the population
 \end{enumerate}
 \vspace{20pt}
 
@@ -242,7 +242,7 @@ Permutations & $n!$ & $100! \approx 10^{158}$ \\
 A PRNG is a deterministic function with several components:
 \bit
 \item A user-supplied \textbf{seed value} used to set the internal state
-\item A function that maps the \textbf{internal state to random bits}
+\item A function that maps the \textbf{internal state to pseudorandom bits}
 \item A function that \textbf{updates the internal state}
 \eit
 
@@ -301,7 +301,7 @@ ${50 \choose 10} \approx 10^{10}$ \\
 \vspace{20pt}
 \pause
 
-\noindent Period of Mersenne Twister (standard PRNG in Statistics): \\
+\noindent State space of Mersenne Twister (standard PRNG in Statistics): \\
 $2^{32 \times 624} \approx 2 \times 10^{6010}$ \\
 \vspace{5pt}
 
@@ -325,7 +325,7 @@ $2084! \approx 3 \times 10^{6013}$\\
 I will show
 \bit
 \item New tests for pseudorandomness based on simple random sampling
-\item New PRNGs based on cryptographic hash functions
+\item (New to Statistics) PRNGs based on cryptographic hash functions
 \eit
 \end{block}
 
@@ -708,7 +708,7 @@ Unsatisfactory: how do we choose number of samples?
 
 \frame{
 \frametitle{Sequential probability ratio test}
-Sequential test for multinomial random variables: reduce it to a comparison of Bernoullis (\cite{weiss_sequential_1962})
+Sequential test for multinomial random variables: reduce it to a test about a Bernoulli $p$ (\cite{weiss_sequential_1962})
 \bit
 \item Fix $s$ and define $$B(n) \equiv \mathbb{I}(\footnotesize{\text{$n$th sample is among the $s$ most frequent samples before step $n$}})$$
 \item $B(n) \sim \text{Bernoulli}(p)$. Then we may test
@@ -1022,7 +1022,7 @@ We use the SHA256 hash function:
 \frame{
 \frametitle{Hash function PRNGs}
 \bit
-\item Efficient: based on fast, pre-existing hash function code. Some cryptographic hash primitives are even built into hardware (e.g. AES block cipher is on all Intel processors)
+\item Efficient: based on fast, pre-existing hash function code. Some cryptographic hash primitives are even built into hardware (e.g. AES block cipher is on current Intel processors)
 \item Memory efficient: only need to store the seed and counter
 \item Unpredictable: small changes to input produce large unpredictable changes to output. The only way to figure out the sequence is to know the seed.
 \item Jump ahead: add the desired number of steps to the counter
