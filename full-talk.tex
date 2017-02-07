@@ -1,0 +1,1282 @@
+\documentclass{beamer}
+
+\usepackage{beamerthemesplit}
+\usepackage{graphicx}
+\usepackage{color}
+\usepackage{bibentry}
+\usepackage{natbib}
+\nobibliography*
+\usepackage{hyperref}
+
+% Algorithm environment
+\usepackage{algorithm,algorithmicx}
+\usepackage[noend]{algpseudocode}
+\newcommand*\Let[2]{\State #1 $\gets$ #2}
+
+
+% define colors
+\definecolor{jblue}  {RGB}{20,50,100}
+\definecolor{ngreen} {RGB}{98,158,31}
+
+%theme
+
+\usetheme{boxes} 
+%\usecolortheme{seahorse} 
+\setbeamertemplate{items}[default] 
+%\setbeamercovered{transparent}
+\setbeamertemplate{blocks}[rounded]
+\setbeamertemplate{navigation symbols}{} 
+% set the basic colors
+\setbeamercolor{palette primary}   {fg=black,bg=white}
+\setbeamercolor{palette secondary} {fg=black,bg=white}
+\setbeamercolor{palette tertiary}  {bg=jblue,fg=white}
+\setbeamercolor{palette quaternary}{fg=black,bg=white}
+\setbeamercolor{structure}{fg=jblue}
+\setbeamercolor{titlelike}         {bg=jblue,fg=white}
+\setbeamercolor{frametitle}        {bg=jblue!10,fg=jblue}
+\setbeamercolor{cboxb}{fg=black,bg=jblue}
+\setbeamercolor{cboxr}{fg=black,bg=red}
+
+% reduce space before/after equations
+\expandafter\def\expandafter\normalsize\expandafter{%
+    \normalsize
+    \setlength\abovedisplayskip{1pt}
+    \setlength\belowdisplayskip{1pt}
+    \setlength\abovedisplayshortskip{1pt}
+    \setlength\belowdisplayshortskip{1pt}
+}
+
+% set colors for itemize/enumerate
+\setbeamercolor{item}{fg=ngreen}
+\setbeamercolor{item projected}{fg=white,bg=ngreen}
+
+% set colors for blocks
+\setbeamercolor{block title}{fg=ngreen,bg=white}
+\setbeamercolor{block body}{fg=black,bg=jblue!10}
+
+% set colors for alerted blocks (blocks with frame)
+\setbeamercolor{block alerted title}{fg=white,bg=jblue}
+\setbeamercolor{block alerted body}{fg=black,bg=jblue!10}
+\setbeamercolor{block alerted title}{fg=white,bg=dblue!70} % Colors of the highlighted block titles
+\setbeamercolor{block alerted body}{fg=black,bg=dblue!10} % Colors of the body of highlighted blocks
+
+% set the fonts
+\usefonttheme{professionalfonts}
+
+\setbeamerfont{section in head/foot}{series=\bfseries}
+\setbeamerfont{block title}{series=\bfseries}
+\setbeamerfont{block alerted title}{series=\bfseries}
+\setbeamerfont{frametitle}{series=\bfseries}
+\setbeamerfont{frametitle}{size=\Large}
+\setbeamerfont{block body}{series=\mdseries}
+\setbeamerfont{caption}{series=\mdseries}
+\setbeamerfont{headline}{series=\mdseries}
+
+
+% set some beamer theme options
+\setbeamertemplate{title page}[default][colsep=-4bp,rounded=true]
+\setbeamertemplate{sections/subsections in toc}[square]
+\setbeamertemplate{items}[circle]
+\setbeamertemplate{blocks}[width=0.0]
+\beamertemplatenavigationsymbolsempty
+
+% Making a DAG
+\usepackage{tkz-graph}  
+\usetikzlibrary{calc}
+\usetikzlibrary{shapes.geometric}
+\usetikzlibrary{positioning}
+\tikzstyle{VertexStyle} = [shape            = rectangle,
+                               minimum width    = 6ex,%
+                               draw]
+ \tikzstyle{EdgeStyle}   = [->,>=stealth']      
+
+% Define block styles
+\tikzstyle{f} = [rectangle, draw, fill=blue!20, 
+    text width=3em, text badly centered, node distance=1.75cm]
+\tikzstyle{message} = [rectangle, draw, fill=green!20, 
+    text width=3em, text centered]
+\tikzstyle{io} = [draw, circle,fill=red!20, node distance=2cm,
+    minimum height=2em]
+\tikzstyle{line} = [draw, -latex']
+
+% Math macros
+\newcommand{\cD}{{\mathcal D}}
+\newcommand{\cF}{{\mathcal F}}
+\newcommand{\todo}[1]{{\color{red}{TO DO: \sc #1}}}
+
+\newcommand{\reals}{\mathbb{R}}
+\newcommand{\integers}{\mathbb{Z}}
+\newcommand{\naturals}{\mathbb{N}}
+\newcommand{\rationals}{\mathbb{Q}}
+
+\newcommand{\ind}[1]{1_{#1}} % Indicator function
+\newcommand{\pr}{\mathbb{P}} % Generic probability
+\newcommand{\ex}{\mathbb{E}} % Generic expectation
+\newcommand{\var}{\textrm{Var}}
+\newcommand{\cov}{\textrm{Cov}}
+
+\newcommand{\normal}{N} % for normal distribution (can probably skip this)
+\newcommand{\eps}{\varepsilon}
+\newcommand\independent{\protect\mathpalette{\protect\independenT}{\perp}}
+\def\independenT#1#2{\mathrel{\rlap{$#1#2$}\mkern2mu{#1#2}}}
+
+\newcommand{\convd}{\stackrel{d}{\longrightarrow}} % convergence in distribution/law/measure
+\newcommand{\convp}{\stackrel{P}{\longrightarrow}} % convergence in probability
+\newcommand{\convas}{\stackrel{\textrm{a.s.}}{\longrightarrow}} % convergence almost surely
+
+\newcommand{\eqd}{\stackrel{d}{=}} % equal in distribution/law/measure
+\newcommand{\argmax}{\arg\!\max}
+\newcommand{\argmin}{\arg\!\min}
+
+\newcommand{\bit}{\begin{itemize}}
+\newcommand{\eit}{\end{itemize}}
+
+
+\mode<presentation>
+
+\title[Simple Random Sampling: Not So Simple]{Simple Random Sampling: Not So Simple}
+\author{Kellie Ottoboni \\ with Philip B.~Stark and Ron Rivest}
+\institute[]{Department of Statistics, UC Berkeley\\Berkeley Institute for Data Science}
+\date{February 7, 2017}
+
+\begin{document}
+
+\frame{
+\titlepage
+\vfill
+\begin{columns}[T]
+\begin{column}{.5\textwidth}
+\begin{center}
+\vspace{25pt}
+\includegraphics[width=\textwidth]{fig/logo/dept1.pdf}
+\end{center}
+\end{column}
+\begin{column}{.3\textwidth}
+\begin{center}
+\end{center}
+\end{column}
+\begin{column}{.3\textwidth}
+\begin{center}
+\includegraphics[width=0.9\textwidth]{fig/logo/BIDS.png}
+\end{center}
+\end{column}
+\end{columns}
+}
+
+
+\section[Introduction]{Introduction}
+
+
+\frame{
+\begin{figure}[htbp]
+\begin{center}
+\includegraphics[height = .8\textheight]{fig/book}
+\end{center}
+\end{figure}
+}
+
+
+
+
+\frame{
+\frametitle{Simple Random Sampling}
+\textbf{Simple random sampling:} drawing $k$ objects from a group of $n$ in such a way that all $n\choose k$ possible subsets are equally likely. \\
+\vspace{20pt}
+
+In practice, it is difficult to draw truly random samples.
+\vspace{20pt}
+
+Instead, people tend to draw samples using
+\begin{enumerate}
+\item A \textbf{pseudorandom number generator} (PRNG) that produces sequences of bits, plus
+\item A sampling algorithm that maps a sequence of pseudorandom numbers into a subset of the population
+\end{enumerate}
+\vspace{20pt}
+
+Most people take for granted that this procedure is a sufficient approximation to simple random sampling.
+
+}
+
+
+\begin{frame}
+\frametitle{Using computers to sample}
+
+Social applications may require the PRNG to produce all possible samples -- e.g. jury duty summons, gaming machines, lottery tickets.
+%\item \todo{think about if I want to include this} Impossibility bounds show that some statistics estimated from Monte Carlo distributions will have nontrivial bias (though we don't know which statistics) \hyperlink{impossibility_bounds}{\beamerbutton{here}}
+
+\vspace{10pt}
+\begin{block}{\cite{marsaglia_seeds_2003}}
+The preceding examples indicate that social applications may require the [PRNG] is able to select from every possible outcome, a requirement that can be satisfied with RNGs having many random seed values... Thus, multiple-seed [PRNGs] seem desirable for some applications and mandatory for others.
+\end{block}
+
+\vspace{10pt}
+But passing PRNs into a sampling algorithm adds an additional layer to the problem.
+
+\end{frame}
+
+\frame{
+\frametitle{Simple Random Sampling}
+
+
+If PRNGs are unable to generate all simple random samples, the problem will be even worse for other methods: permutation, bootstrap samples, MCMC, Monte Carlo integration...
+
+\vspace{20pt}
+\begin{table}[htdp]
+{Number of possible samples for $n = 100$, $k = 50$}
+\begin{center}
+\begin{tabular}{l|c|c}
+\hline 
+SRSs & $n \choose k$ & ${100 \choose 50} \approx 10^{29}$ \\ [1em]
+Bootstrap Samples& $n^k$ & $100^{50} = 10^{100}$ \\ [1em]
+Permutations & $n!$ & $100! \approx 10^{158}$ \\
+\hline 
+\end{tabular}
+\end{center}
+\end{table}%
+}
+
+
+\frame{
+\frametitle{Pseudorandom number generators (PRNGs)}
+
+A PRNG is a deterministic function with several components:
+\bit
+\item A user-supplied \textbf{seed value} used to set the internal state
+\item A function that maps the \textbf{internal state to pseudorandom bits}
+\item A function that \textbf{updates the internal state}
+\eit
+
+\begin{center}
+\resizebox{10cm}{!}{    
+\begin{tikzpicture}[node distance = 3cm, auto, scale = 0.5]
+    % Place nodes
+    \node[io] (seed) {Seed};
+    \node [f, right of=seed, node distance = 3cm] (state) {Internal state};
+    \node [message, right of=state, node distance = 3cm] (output) {Random bits};
+    % Draw edges
+    \path [line] (seed) -- (state);
+    \path [line] (state) -- (output);
+    \path (state) edge [->, in = 130, out = 50, distance = 20mm] node[above] {Update} (state);
+    % Draw box 
+    \draw ($(state.north west)+(-2.5,2.5)$)  rectangle ($(state.south east)+(2.5,-1)$);
+\end{tikzpicture}
+}
+\end{center}
+
+}
+
+
+\frame{
+\frametitle{Pigeons and Pigeonholes}
+
+\begin{theorem}[Pigeonhole Principle]
+If there are $n$ pigeonholes and $m>n$ pigeons, then there exists at least one pigeonhole containing more than one pigeon.
+\end{theorem}
+\begin{figure}[htbp]
+\begin{center}
+\includegraphics[width = .3\textwidth]{fig/TooManyPigeons.jpg}
+\end{center}
+\tiny \href{https://commons.wikimedia.org/w/index.php?curid=4658682}{(Wikipedia)}
+\end{figure}
+
+\pause
+\begin{corollary}[Too few pigeons]
+If ${n \choose k}$ is greater than the size of a PRNG's state space, then the PRNG cannot possibly generate all samples of size $k$ from a population of $n$.
+\end{corollary}
+}
+
+
+\frame{
+\frametitle{Pigeons and Pigeonholes}
+
+Period of 32-bit linear congruential generators (the most basic acceptable PRNG): \\
+\setlength{\parindent}{10ex} at most $2^{32} \approx 4 \times 10^9$ \\
+\vspace{5pt}
+% (some poorly designed ones have an even shorter period) \\
+\noindent Samples of size $10$ from $50$: \\
+${50 \choose 10} \approx 10^{10}$ \\
+\vspace{5pt}
+
+\noindent \textbf{More than half of samples cannot be generated}
+\vspace{20pt}
+\pause
+
+\noindent State space of Mersenne Twister (standard PRNG in Statistics): \\
+$2^{32 \times 624} \approx 2 \times 10^{6010}$ \\
+\vspace{5pt}
+
+\noindent Permutations of $2084$ objects: \\
+$2084! \approx 3 \times 10^{6013}$\\
+\vspace{5pt}
+\noindent\textbf{Less than $0.01\%$ of permutations can be generated}
+}
+
+
+
+\frame{
+\frametitle{Overview}
+\bit
+\itemsep10pt
+\item Some sampling algorithms are better than others -- look under the hood of your software
+\item PRNGs for Statistical applications should be judged on how well they produce random samples when passed into a reasonable sampling algorithm
+\eit
+
+\begin{block}{}
+I will show
+\bit
+\item New tests for pseudorandomness based on simple random sampling
+\item (New to Statistics) PRNGs based on cryptographic hash functions
+\eit
+\end{block}
+
+}
+
+
+\section[Sampling algorithms]{Sampling Algorithms}
+  \begin{frame}
+  \frametitle{Contents}
+  \tableofcontents[currentsection]
+  \end{frame}
+  
+  
+  
+\frame{
+\frametitle{Sampling Algorithms}
+
+Given a sequence of (pseudo)random numbers, how do we use them to draw a SRS? \\
+\vspace{15pt}
+Two general strategies:
+\bit
+\item ``Shuffle the deck'' and take the top $k$ as the sample
+\item Number the population, select $k$ random integers, and take the corresponding items
+\eit
+}
+
+\frame{
+\frametitle{PIKK}
+\begin{algorithm}[H]                      % enter the algorithm environment
+\caption{PIKK: Permute indices and keep $k$}          % give the algorithm a caption
+\label{PIKK}                           % and a label for \ref{} commands later in the document
+\begin{algorithmic}[1]             % enter the algorithmic environment
+     \State{Assign IID uniform values on $[0,1]$ to the $n$ elements of the population}
+     \State{Sort the population according to these values (break ties randomly)}
+     \State{Take the top $k$ to be the sample}
+\end{algorithmic}
+\end{algorithm}
+
+\bit
+\item Relies on assumption that all permutations are equally likely
+\item Inefficient: requires $n$ PRNs and $O(n\log n)$ sorting operation
+\item Possibly the basis for the \texttt{sample} function in Stata
+\eit
+
+%\todo{who else recommends PIKK? do a lit search}
+
+}
+
+
+
+
+\begin{frame}\label{fykd}
+\frametitle{Shuffling algorithms}
+\bit
+\item Knuth shuffle: requires $n-1$ random integers, but no sorting. This is what \texttt{np.random.choice} does.
+\begin{algorithm}[H]                      % enter the algorithm environment
+\caption{Fisher-Yates-Knuth-Durstenfeld shuffle}          % give the algorithm a caption
+\label{FYKD}                           % and a label for \ref{} commands later in the document
+\begin{algorithmic}[1]               % enter the algorithmic environment
+\For{$i = 2, \dots, n$}
+    \Let{$J$}{random integer uniformly distributed on $1, \dots, i$}
+    \Let{$(a[J], a[i])$}{$(a[i], a[J])$}
+\EndFor
+\State{Take the first $k$ to be the sample}
+\end{algorithmic}
+\end{algorithm}
+\hyperlink{fykd-proof}{\beamerbutton{Proof}}
+
+\item Reservoir algorithms: Algorithm R (\cite{knuth_art_1997}), Algorithm Z (\cite{vitter_random_1985}) are related to shuffling and don't require knowing the population size a priori
+\eit
+\end{frame}
+
+
+\frame{
+\frametitle{Random indices}
+\begin{algorithm}[H]                      % enter the algorithm environment
+\caption{Uniform random indices}          % give the algorithm a caption
+\label{algo:uri}                           % and a label for \ref{} commands later in the document
+\begin{algorithmic}[1]             % enter the algorithmic environment
+\Let{$\tilde{n}$}{$n$}
+\Let{Population indices}{$\{1, \dots, n\}$}
+\For{$i = 1, \dots, k$}
+%     \Let{$w$}{a uniform PRN on $[0, 1)$}
+%     \Let{$j$}{Element in the $\lfloor\tilde{n}w\rfloor + 1$ space in Population indices}
+     \Let{$w$}{A random integer on $\{1, \dots, \tilde{n}\}$}
+     \Let{$j$}{The $w$th element in Population indices}
+     \Let{Sample indices}{Sample indices $\cup \{j\}$}
+     \Let{Population indices}{Put last remaining index in place $w$}
+     \Let{$\tilde{n}$}{$\tilde{n}-1$}
+\EndFor
+\State{Take the items with selected Sample indices}
+\end{algorithmic}
+\end{algorithm}
+
+\bit
+\item Method used by R \texttt{sample}, Python \texttt{random.sample}
+\item More efficient: uses only $k$ PRNs and no sorting
+\eit
+}
+
+
+\begin{frame}[label = nonuniform-lemma]
+\frametitle{Generating (non)uniform integers}
+\bit
+\item These algorithms depend on uniformly distributed integers.
+\item A common way to obtain an integer in the range $\{1, \dots, m\}$:
+\bit
+\item Generate a PRN $U$ on $[0, 1)$, take $\lfloor m U\rfloor + 1$
+\item But $U$ is not really continuous -- it can only take $2^w$ values (where $w$ is number of bits in PRNG output)
+\item Unless $m$ is a multiple of $2^w$, $\lfloor mU \rfloor$ will not truly be uniform! (\cite{knuth_art_1997})
+\eit
+\eit
+\begin{lemma}
+For $m < 2^w$, the ratio of the largest to smallest selection probability is, to first order,  $1+ m 2^{-w}$.
+\end{lemma}
+
+\hyperlink{nonuniform-proof}{\beamerbutton{Proof}}
+
+%\todo{think carefully about important values of $m$ and $w$}
+\end{frame}
+
+
+
+\frame{
+\frametitle{Generating (non)uniform integers}
+
+\bit
+\item A better way to generate integers on $\{1, \dots, m\}$:
+\vspace{10pt}
+ Let \begin{displaymath}
+   w = \left\{
+     \begin{array}{lr}
+       \log_2(m) & \text{if $m$ is a power of 2}\\
+       \lfloor \log_2(m) \rfloor + 1 & \text{otherwise}
+     \end{array}
+   \right.
+\end{displaymath} 
+
+\vspace{10pt}
+
+Generate a $w$-bit integer $J$. If $J > m$, discard and repeat.
+\vspace{10pt}
+
+\item Possibly slow: will discard nearly half of draws when $m$ is close to $2^{w-1}$
+\item Resulting integers will truly be uniform
+\eit
+}
+
+
+
+\frame{
+\frametitle{Sampling Algorithms}
+\begin{table}[htdp]
+\begin{center}
+\begin{tabular}{l|c|c}
+Package & Sampling algorithm & Random integer algorithm \\
+\hline
+R & random indices & variant of floor method \\ [0.5em]
+Python \texttt{random} & random indices & discard method \\[0.5em]
+Numpy \texttt{random} & shuffle and keep $k$ & discard method \\[0.5em]
+Stata & ? & ? \\
+\hline 
+\end{tabular}
+\end{center}
+\end{table}%
+
+
+\bit
+\item Stata blogs recommend people use PIKK when coding up sampling themselves. But Stata's sort function is randomized by default. Not reproducible! (\cite{schumm_stata_2006})
+\item R creates random integers the ``wrong'' way -- working to submit a \href{https://bugs.r-project.org/bugzilla/}{bug report}
+\eit
+}
+
+
+\section[Pseudorandomness]{Pseudorandomness}
+
+  \begin{frame}
+  \frametitle{Contents}
+  \tableofcontents[currentsection]
+  \end{frame}
+
+\frame{
+\frametitle{Pseudorandomness}
+\begin{figure}[htbp]
+\begin{center}
+\includegraphics[width = .8\textwidth]{fig/dilbert}
+\end{center}
+\tiny \href{http://dilbert.com/strip/2001-10-25}{Dilbert}
+\end{figure}
+
+
+\textbf{Pseudorandom}: deterministic, but having the same relevant statistical properties as if random
+
+
+\bit
+\item Uniformity: values and sequences of values should be equiprobable
+\item Independence: lack of serial correlation, unpredictable
+\eit
+\pause
+PRNGs can't do this perfectly.
+\bit
+\item They are \textbf{deterministic}: knowing input tells you the output.
+\item Most are \textbf{periodic}: they eventually produce the same sequence of values.
+\item They have some predictable mathematical structure.
+\eit
+}
+
+\begin{frame}
+\frametitle{Pseudorandomness}
+\begin{figure}[htbp]
+\includegraphics[height = 0.8\textheight]{fig/wired.png}
+\end{figure}
+\tiny\url{https://www.wired.com/2017/02/russians-engineer-brilliant-slot-machine-cheat-casinos-no-fix/}
+\end{frame}
+
+
+\frame{
+\frametitle{What makes a PRNG}
+
+\bit
+\item Mimics a random generator
+\bit
+\item Cryptography definition: No application of the PRNG should behave differently from a ``random oracle''
+\item Stats definition: We cannot reject the null hypothesis that the outputs come from a uniform distribution
+\eit
+\item Fast and memory efficient
+\item Desirable, but not essential:
+\bit 
+\item Unpredictable. This is different from random - if it's deterministic, then it's predictable to some degree. Important in cryptography, less important in Statistics.
+\item Jump-ahead feature to efficiently skip through random numbers, generate multiple streams for parallel applications
+\item Easy seeding: should be simple to set the state from the seed, robust to value supplied
+\eit
+\eit
+}
+
+
+
+\frame{
+\frametitle{Testing PRNGs}
+\bit
+\itemsep 10pt
+\item ``Uniform'' and ``independent'' are broad criteria -- many ways to define and check for these properties
+\bit
+\itemsep 10pt
+\item Uniformity at varying levels of granularity
+\item Independence within and between subsequences
+\eit
+\item Test batteries: 
+\bit
+\itemsep 10pt
+\item Diehard battery (\cite{marsaglia_diehard_1995})
+\item NIST Statistical Test Suite (\cite{soto_statistical_1999,rukhin_statistical_2010})
+\item TestU01 suite (\cite{lecuyer_testu01_2007})
+\eit
+\eit
+}
+
+
+\begin{frame}
+\frametitle{Testing for uniformity}
+\begin{enumerate}
+\item Kolmogorov-Smirnov test: values should appear IID $U[0,1]$
+\pause
+\item Chi-squared test: break values or sequences of values into categories with known frequencies under the null
+\pause
+\label{range_test}
+\item \textbf{New proposal:} Range test \\
+
+Break values into equally probable categories and compute the range of observed frequencies
+
+$$ R = \max_{i} O_i - \min_i O_i$$
+
+$R$ has a complicated distribution... use asymptotic approximation from \citet{young_two_1962}: 
+
+$$\pr(R \leq r) \approx P(W_N \leq (r-(2B)^{-1})(N/B)^{1/2})$$
+where $W_N$ denotes the sample range of $N$ independent standard normal random variables and $B$ is the number of multinomial draws.
+
+\hyperlink{range_power}{\beamerbutton{Power}}
+
+\end{enumerate}
+\end{frame}
+
+
+\frame{
+\frametitle{Testing for independence}
+
+\begin{enumerate}
+\item Gap test: count length of sequence between values in a given range
+\item Permutation test: look at ordering of values in subsequences of length $t$
+\item Serial correlation test: correlation between consecutive pairs of values
+\item Many more possibilities!
+\end{enumerate}
+
+}
+
+
+
+\frame{
+\frametitle{Compressability tests}
+ Idea: More information needed to describe structure $\iff$ less correlation between consecutive PRNs
+
+
+\begin{enumerate}
+\item Compressability test: measures entropy in sequences of PRNs
+\item Spectral test in dimension $d$: measures the maximum distance between parallel hyperplanes that cover all points in a sequence
+\end{enumerate}
+
+
+\begin{figure}
+\includegraphics[width = 0.25\textwidth]{fig/lcg_2d}\includegraphics[width = 0.25\textwidth]{fig/lcg_3d} \\
+{\tiny $ X_{n+1} = (137X_n+ 187) \mod 256$}
+\end{figure}
+}
+
+
+
+\frame{
+\frametitle{New tests for PRNGs}
+
+\bit
+\item Some sampling algorithms use PRNGs in ways that are not covered by these tests
+\item E.g. Algorithm~\ref{algo:uri} for sampling by uniform random indices
+\bit
+\item To generate a SRS of size $k$ from $n$, obtain PRNs $(U_1, \dots, U_k)$ where 
+$U_j$ is uniform on $\{1, \dots, n - j + 1\}$
+\item The sequences $(U_1, \dots, U_k)$ should themselves be equiprobable
+\eit
+\pause
+\item \textbf{Proposal:} test by generating a large ``sample'' of $B$ SRSs
+
+\begin{align*}
+H_0&: \pr(\text{SRS}_i ) = \frac{1}{{n\choose k}} \text{ for all ${n\choose k}$ possible SRSs} \\
+H_1&: \pr(\text{SRS}_i ) \neq \frac{1}{{n\choose k}}\text{ for some SRS} 
+\end{align*}
+\vspace{15pt}
+
+
+\item Under $H_0$, the number of times each SRS is observed follows a multinomial distribution with $B$ trials and equal selection probabilities $1/{n \choose k}$
+
+\eit
+}
+
+
+\frame{
+\frametitle{New tests for PRNGs}
+
+\textbf{Chi-squared or range test:} generate a fixed number of samples starting with seed $\mathcal{S}$ and look at sample frequencies.
+
+\begin{figure}[htbp]
+\begin{center}
+\includegraphics[width = 0.8\textwidth]{fig/prng-seeds-lineplot.pdf}
+\end{center}
+\end{figure}
+Unsatisfactory: how do we choose number of samples?
+
+}
+
+\frame{
+\frametitle{Sequential probability ratio test}
+
+
+\bit
+\item A \textbf{sequential probability ratio test} is a hypothesis testing procedure that weighs the evidence of each observation as it comes in (\cite{wald_sequential_1973})
+\item Tests $H_0: (X_n) \sim f_0$ against $H_1: (X_n) \sim f_1$ by checking the likelihood ratio (LR) after each observation
+\eit
+
+\begin{algorithm}[H]                      % enter the algorithm environment
+\caption{Sequential probability ratio test}          % give the algorithm a caption
+\label{algo:sprt}                           % and a label for \ref{} commands later in the document
+\begin{algorithmic}[1]             % enter the algorithmic environment
+\Let{$\alpha, \beta$}{desired type I and II error rates}
+%\Let{$A$}{$\frac{\beta}{1-\alpha}$}
+%\Let{$B$}{$\frac{1-\beta}{\alpha}$}
+\Let{$LR$}{1}
+\While{$\frac{\beta}{1-\alpha} < LR < \frac{1-\beta}{\alpha}$}
+     \Let{$X_m$}{A new observation}
+     \Let{$LR$}{$LR \times \frac{f_1(X_m)}{f_0(X_m)}$}
+\EndWhile
+\If{$LR \leq \frac{\beta}{1-\alpha}$}\State{\text{Fail to reject the null hypothesis; stop}}
+\EndIf
+\If{$LR \geq  \frac{1-\beta}{\alpha}$}\State{\text{Reject the null hypothesis; stop}}
+\EndIf
+\end{algorithmic}
+\end{algorithm}
+
+}
+
+\frame{
+\frametitle{Sequential probability ratio test}
+Sequential test for multinomial random variables: reduce it to a test about a Bernoulli $p$ (\cite{weiss_sequential_1962})
+\bit
+\item Fix $s$ and define $$B(n) \equiv \mathbb{I}(\footnotesize{\text{$n$th sample is among the $s$ most frequent samples before step $n$}})$$
+\item $B(n) \sim \text{Bernoulli}(p)$. Then we may test
+
+\begin{align*}
+H_0&: p = p_0 = s{ n\choose k}^{-1} \\
+H_1&: p = p_1 > s{ n\choose k}^{-1}
+\end{align*}
+
+\item \textbf{Peculiar:} $B(n)$ depends on the samples that have been observed before the $n$th! \\
+
+But under the null, $p_0$ is fixed and doesn't depend on what the samples actually are.
+\eit
+}
+
+
+\frame{
+\frametitle{Sequential probability ratio test}
+\textbf{Preliminary results:}
+
+\bit
+\item Simulations show that the test has the correct level under the null
+\item Issues of power: how to choose $s$ and $p_1$? Depends on what we believe the alternative is.
+\begin{figure}[htbp]
+\begin{center}
+\includegraphics[width = 0.8\textwidth]{fig/sample-freq-hist.pdf}
+\end{center}
+\end{figure}
+\eit
+}
+
+%\frame{
+%\frametitle{Bad seeds}
+%\bit
+%\item \textbf{Seed}: an initial value to set the internal state of a PRNG.
+%\item Mersenne Twister has problems with seeds with too many zeros (\cite{saito_simd-oriented_2008})
+%\item LCGs may not achieve their full period with certain seeds (\cite{park_random_1988})
+%\eit
+%
+%\todo{Think about removing this and putting in some of the frequency simulation results instead. This is a highly stylized example - I hand picked the seeds, reps, etc}
+%
+%\pause
+%\begin{figure}[htbp]
+%\begin{center}
+%\includegraphics[width = 0.8\textwidth]{fig/bad-seeds.pdf}
+%\end{center}
+%\footnotesize{$10^5$ samples of size $2$ from a population of $30$ (Mersenne Twister in R)}
+%\end{figure}
+%}
+
+
+
+
+
+\section[PRNGs]{PRNGs}
+  \begin{frame}
+  \frametitle{Contents}
+  \tableofcontents[currentsection]
+  \end{frame}
+  
+\frame{
+\frametitle{Linear Congruential Generators}
+LCGs have the form
+$$ X_{n+1} = (a X_n + c) \mod m$$
+
+Smart choices of $a$,$c$, and $m$ can make the LCG fast to compute and more or less random
+
+\begin{theorem}[Hull-Dobell Full Period Theorem]
+\label{thm:hull_dobell_period}
+The period of an LCG is $m$ for all seeds $X_0$ if and only if
+\begin{itemize}
+\item $m$ and $c$ are relatively prime,
+\item $a-1$ is divisible by all prime factors of $m$, and
+\item $a-1$ is divisible by 4 if $m$ is divisible by 4.
+\end{itemize}
+\end{theorem}
+
+}
+
+\frame{
+\frametitle{The good, the bad, and the ugly}
+\begin{block}{(Knuth, 1997)}
+``Random numbers should not be generated with a method chosen at random.''
+\end{block}
+\pause
+\citet{marsaglia_random_1968} proved that $n$-tuples of numbers generated by any LCG will lie on parallel hyperplanes, making them especially non-random.
+
+
+\begin{figure}[htbp]
+\begin{center}
+\includegraphics[width = 0.4\textwidth]{fig/randu.png}
+\end{center}
+     Triples of RANDU lie on 15 planes in 3D space \\ 
+     $x_{n+1} = (65539 x_{n}) \mod 2^{31}$ \\
+\footnotesize{(Wikipedia)}
+\end{figure}
+}
+
+\frame{
+\frametitle{Better LCGs}
+\bit
+\item Super-Duper: $X_{n+1} = (69069X_{n} )\mod 2^{32}$
+\bit
+\item $69069 = 3 \times 7 \times 11 \times 13 \times 23$
+\item Considered a good LCG, passes spectral tests in low dimensions
+\eit
+\item MINSTD: $X_{n+1} = (16807 X_{n} )\mod (2^{31}-1)$
+\bit
+\item $16807 = 7^5$
+\item The ``minimum standard'' against which other PRNGs should be judged (\cite{park_random_1988})
+\eit
+\item KISS: combines Super-Duper with two other PRNGs
+\bit
+\item Was previously the only PRNG in Stata
+\item Period length over $2^{210}$
+\eit
+\item Wichman-Hill PRNG: a sum of 3 LCGs
+\bit
+\item Was previously the only PRNG in Excel
+\item Faulty implementation didn't allow seeding and sometimes produced negative values (\cite{mccullough_microsoft_2008})
+\eit
+\eit
+
+}
+
+
+\frame{
+\frametitle{Linear Congruential Generators}
+\bit
+\item Fast to compute and requires little memory
+\item Some LCGs are more random than others -- depends on choosing good constants
+\item Not unpredictable. We only need 2 values to determine the constants.
+\item Possible to do jump ahead using mathematical formulas.
+\eit
+}
+
+
+
+\frame{
+\frametitle{Mersenne Twister (\cite{matsumoto_mersenne_1998})}
+
+
+
+\begin{center}
+\resizebox{10cm}{!}{    
+\begin{tikzpicture}[node distance = 2cm, auto, scale = 0.25]
+    % Place nodes
+    \node [message] (m3) {$x_2$};
+    \node [message, left of=m3] (m2) {$x_1$};
+    \node [message, left of=m2] (m1) {$x_0$};
+    \node [message, right of=m3, node distance=3cm] (mn1) {$x_{622}$};
+    \node [message, right of=mn1] (mend) {$x_{623}$};
+    \node [f, below of=m3, node distance = 1cm, minimum width = 5cm] (f) {Tempering};
+    \node [io, below of = f, node distance = 1.5cm](output){Output};
+    % Draw box around GLFSR
+    \draw ($(m1.north west)+(-3,3)$)  rectangle ($(mend.south east)+(3,-0.5)$);
+    % Draw edges
+    \path [line] (m1) -- (m2);
+    \path [line] (m2) -- (m3);
+%    \path [line] (m1) -- (f);
+%    \path [line] (m2) -- (f);
+%    \path [line] (m3) -- (f);
+%     \path [line] (mn1) -- (f);
+%    \path [line] (mend) -- (f);
+    \path [line,dashed] (m3) -- (mn1);
+    \path [line] (mn1) -- (mend);
+    \path [line] (f) -- (output);
+    \draw[->, every node/.style={font=\sffamily\small}] (mend.north) -- ($(mend)+(0,2)$) -- ($(m1)+(0,2)$) node[above, pos=0.8] {GLFSR} -- (m1.north) ;
+    \draw[->, every node/.style={font=\sffamily\small}] ($(mend.east)+(3,1)$) -- ($(mend.east)+(4,1)$) -- ($(mend.east)+(4,-4)$) -- (f.east) ;
+
+\end{tikzpicture}
+}
+\end{center}
+
+\bit
+\item Mersenne Twister (MT) is a ``twisted'' generalized linear feedback shift register: a complex sequence of bitwise and linear operations
+\item Enormous period of $2^{19937} - 1$, a Mersenne prime
+\item $k$-distributed to 32-bit accuracy for $k \leq 623$, i.e. tuples of up to length $623$ occur with equal frequency over the period
+\item Integer seed is used to set the state, a $624 \times 32$ binary matrix
+\eit 
+}
+
+
+
+\frame{
+\frametitle{Mersenne Twister}
+\bit
+\item Fast to compute but has a large state space, not the most memory efficient
+\item Fails some TestU01 tests but has been generally considered ``random'' enough for Statistics... (but stay tuned)
+\item Completely predictable after we've seen 624 values
+\item No good jump ahead feature
+\eit
+}
+
+
+\frame{
+\frametitle{A better alternative}
+\begin{center}
+\textbf{One solution to the pigeonhole problem:} \\   
+\vspace{20pt}
+A class of PRNGs with infinite state space
+\end{center}
+}
+
+\frame{
+\frametitle{Hash function PRNGs}
+\textbf{Hash functions} take in a message $x$ of arbitrary length and return a value $h(x)$ of fixed size (e.g. 256 bits)
+
+
+\begin{center}
+\resizebox{10cm}{!}{    
+\begin{tikzpicture}[node distance = 1cm, auto, scale = 0.5]
+    % Place nodes
+    \node[io] (IV) {IV};
+    \node [f, right of=IV] (f1) {f};
+    \node [f, right of=f1] (f2) {f};
+    \node [f, right of=f2, node distance=3cm] (fn1) {f};
+    \node [f, right of=fn1] (fend) {f};
+    \node [f, right of=fend] (g) {g};
+    \node [io, right of=g] (hx) {$h(x)$};
+    \node [message, above of=f1] (m1) {$x_1$};
+    \node [message, above of=f2] (m2) {$x_2$};
+    \node [message, above of=fn1] (mn1) {$x_{n-1}$};
+    \node [message, above of=fend] (mend) {$x_n$};
+    \node [message, above right = of m1, above left = of mend, minimum width = 5cm] (message) {$x$};
+    % Draw edges
+    \path [line] (IV) -- (f1);
+    \path [line] (f1) -- (f2);
+    \path [line] (message) -- (m1);
+    \path [line] (message) -- (m2);
+    \path [line] (message) -- (mn1);
+    \path [line] (message) -- (mend);
+    \draw [-,dotted] (m2) -- (mn1);
+    \path [line] (m1) -- (f1);
+    \path [line] (m2) -- (f2);
+     \path [line] (mn1) -- (fn1);
+    \path [line] (mend) -- (fend);
+    \path [line] (fend) -- (g);
+    \path [line,dashed] (f2) -- (fn1);
+    \path [line] (fn1) -- (fend);
+    \path [line] (g) -- (hx);
+\end{tikzpicture}
+}
+\end{center}
+Cryptographic hash functions:
+\begin{itemize}
+\item computationally infeasible to invert
+\item difficult to find two inputs that map to the same output
+\item small input changes produce large, unpredictable changes to output
+\item resulting bits are uniformly distributed
+\end{itemize}
+
+}
+
+
+\begin{frame}
+\frametitle{Hash function PRNGs}
+
+Hash function PRNGs are a subset of a wide range of \textbf{cryptographically secure PRNGs}:
+\vspace{10pt}
+\bit
+\item NIST gives guidelines on using hash functions and stream ciphers for cryptographically secure PRNGs (\cite{barker_nist_2015})
+\item The OpenBSD OS uses the ChaCha20 stream cipher to generate PRNs (\cite{openbsd_arc4random_2014, chacha_bernstein_208})
+\item Hash function PRNGs have been recommended for random selection of committees and election auditing (\cite{publicly_motorola_2004, rivest_reference_2011})
+\eit
+\vspace{10pt}
+
+These PRNGs are usually written in low level languages, not in widely used statistical software.
+\end{frame}
+
+
+
+\begin{frame}\label{sha256_procedure}
+\frametitle{Hash function PRNGs}
+
+Procedure for using a cryptographic hash function as PRNG:
+%\begin{enumerate}
+%\item Set a seed, a large random integer
+%\item Set the counter to $0$
+%\item Set the state to be ``seed,counter''
+%\item Hash the state value. This is your random number (expressed in hexadecimal).
+%\item Increment the counter
+%\item Repeat Steps 2-5 as many times as needed
+%\end{enumerate}
+
+
+\begin{algorithm}[H]                      % enter the algorithm environment
+\caption{Hash function PRNG}          % give the algorithm a caption
+\label{hash_prng}                           % and a label for \ref{} commands later in the document
+\begin{algorithmic}[1]             % enter the algorithmic environment
+\Let{seed}{a large random integer}
+\Let{counter}{$0$}
+\For{the number of PRNs desired}
+     \Let{internal state}{``seed,counter''}
+     \State{Hash the internal state value. This is your random number (expressed in hexadecimal).}
+     \Let{counter}{counter$ + 1$}
+\EndFor
+\end{algorithmic}
+\end{algorithm}
+
+
+We use the SHA256 hash function:
+
+\bit
+\item tested against a reference implementation (\cite{rivest_reference_2011}) 
+\item passes the tests described earlier. \hyperlink{sha256_tests}{\beamerbutton{see appendix}}
+\eit
+\end{frame}
+
+\frame{
+\frametitle{Hash function PRNGs}
+\bit
+\item Efficient: based on fast, pre-existing hash function code. Some cryptographic hash primitives are even built into hardware (e.g. AES block cipher is on current Intel processors)
+\item Memory efficient: only need to store the seed and counter
+\item Unpredictable: small changes to input produce large unpredictable changes to output. The only way to figure out the sequence is to know the seed.
+\item Jump ahead: add the desired number of steps to the counter
+\eit
+}
+
+%  
+%\frame{
+%\frametitle{Simulations}
+%\begin{figure}[htbp]
+%\begin{center}
+%\includegraphics[width = \textwidth]{fig/prng-comparison-range-n13-pikk}
+%\end{center}
+%\end{figure}
+%}
+% 
+%\frame{
+%\frametitle{Simulations}
+%\begin{figure}[htbp]
+%\begin{center}
+%\includegraphics[width = \textwidth]{fig/prng-comparison-chisq-n13-pikk}
+%\end{center}
+%\end{figure}
+%}
+
+\frame{
+\frametitle{Sampling tests}
+\begin{figure}[htbp]
+\begin{center}
+\includegraphics[width = 1.1\textwidth]{fig/prng-comparison-range-n13-sbi}
+\end{center}
+\end{figure}
+}
+ 
+
+\frame{
+\frametitle{Sampling tests}
+\bit
+\item None of the 3  good PRNGs is best overall -- results vary by seed value
+\bit
+\item SHA256 PRNG should behave like ``random oracle'' and results should not vary by seed
+\item \textbf{Next step:} run tests for many seeds; p-values should be uniform under the null
+\eit
+\pause
+\item Results vary by sample size $k$
+\bit
+\item Sampling $k$ from $n$ is complementary to sampling $n-k$ from $n$
+\item Resulting samples are not equally uniform -- a difference between theory and practice
+%\item $p$-value curves tend to dip around $5\times 10^6$ samples -- trade-off between statistical power and equidistribution of PRNG?
+\eit
+\pause
+\item Other tests
+\bit 
+\item Results are similarly indeterminate for the chi-squared test
+\item Working towards implementing the sequential probability ratio test
+\eit
+\eit
+}
+
+\frame{
+\frametitle{Next steps}
+
+Practical:
+\bit
+\item Find examples where results of a study would change from using a better sampling algorithm/PRNG
+\item Add the proposed statistical tests to a more thorough test battery for PRNGs for Statistics
+\item Create plug-in hash function PRNGs for R and Python
+\eit
+
+}
+
+
+
+\section[Appendix]{Appendix}
+  \begin{frame}
+  \frametitle{Contents}
+  \tableofcontents[currentsection]
+  \end{frame}
+
+
+\begin{frame}[label = impossibility_bounds]
+\frametitle{Impossibility bounds}
+Let $F$ be the uniform distribution on all samples of size $k$ from a population of $n$.
+For some subset of samples $S$,
+define $\mathcal{G} = \{ G: G(S) = 0, S \in \mathcal{S}\}$ and $\nu = \lvert S \rvert$.
+
+
+\begin{lemma}
+For any $G \in \mathcal{G}$, $ \lVert F - G \rVert_1 \geq \frac{2\nu}{{n \choose k}}$
+\end{lemma}
+
+
+For any bounded function $\psi: \Omega \to \reals$ and for any $G \in \mathcal{G}$,
+
+$$\left\lvert \int \psi dG - \int \psi dF \right\rvert \leq \lVert F - G \rVert_1 \lVert \psi \rVert_\infty$$
+
+
+\begin{corollary}
+There exists a statistic $\psi$ such that
+
+$$\left\lvert  \ex_F(\psi) - \ex_G(\psi) \right\rvert \geq  \frac{2\nu \lVert \psi \rVert_\infty}{{n \choose k}}$$
+\end{corollary}
+
+\hyperlink{pigeonhole}{\beamerbutton{back}}
+
+\end{frame}
+
+
+\frame{
+\tiny
+\begin{proof}[Proof of Lemma]
+Fix $S$ and choose $G \in \mathcal{G}$ such that $G(S) = 0, G(\omega) > 0$ for $\omega \in S^c$.
+\begin{align*}
+\lVert F - G \rVert_1 &= \sum_{\omega \in \Omega} \lvert F(\omega) - G(\omega) \rvert \\
+&= \sum_{\omega \in S} \lvert F(\omega) - G(\omega) \rvert + \sum_{\omega \in S^c} \lvert F(\omega) - G(\omega) \rvert\\
+&= \sum_{\omega \in S} \lvert F(\omega) \rvert + \sum_{\omega \in S^c} \lvert F(\omega) - G(\omega) \rvert\\
+&= \frac{ \lvert S \rvert}{{n \choose k}}+ \sum_{\omega \in S^c} \lvert F(\omega) - (F(\omega) + \eps_\omega) \rvert\\
+\end{align*}
+\noindent where $\eps_\omega \in [ - {n \choose k}^{-1}, 1 - {n\choose k}^{-1}]$ and $\sum_{\omega \in S^c} \eps_\omega = \sum_{\omega \in S} F(\omega) =  \frac{ \lvert S \rvert}{{n \choose k}}$.
+NB this must be the case to ensure that $\sum_{\omega} G(\omega) = 1$, since
+$$\sum_{\omega} G(\omega) =\sum_{\omega\in S^c} G(\omega) = \sum_{\omega\in S^c} F(\omega) + \eps_\omega = \sum_{\omega\in S^c} F(\omega) + \sum_{\omega\in S} F(\omega) = 1.$$
+
+Therefore,
+\begin{align*}
+\lVert F - G \rVert_1 &= \frac{ \lvert S \rvert}{{n \choose k}}+ \sum_{\omega \in S^c} \lvert \eps_\omega \rvert\\
+&=  \frac{ \lvert S \rvert}{{n \choose k}}+ \sum_{\omega \in S} \lvert F(\omega) \\
+&= \frac{2 \lvert S \rvert}{{n \choose k}}
+\end{align*}
+\end{proof}
+\hyperlink{pigeonhole}{\beamerbutton{back}}
+}
+
+
+
+\begin{frame}[label = fykd-proof]
+\footnotesize
+\begin{proof}[Fisher-Yates-Knuth-Durstenfeld Shuffle]
+We prove by induction that the FYKD the algorithm gives all possible permutations of $\{1, \dots, n\}$ with equal probability, and thus all possible orderings of the first $k$ have equal probability too.
+When $n=2$, this is trivial.  We sample $J=1$ with probability $\frac{1}{2}$ to get the ordered pair $(2, 1)$ or sample $J=2$ with probability $\frac{1}{2}$ to get the ordered pair $(1, 2)$. \\
+\vspace{10pt}
+
+Suppose the algorithm works for $n = 1, \dots, j$ and we're at the $j+1$st step.  There are two possibilities:
+\begin{enumerate}
+\item $J= j+1$ with probability $\frac{1}{j+1}$. Then we don't swap anything and we simply append $j+1$ to the other permutations.  This enumerates $j!$ permutations.
+\item $J = i < j+1$ with probability $\frac{1}{j+1}$.  Then we swap $i$ with $j+1$.  There are $j!$ equally likely ways that the first $j$ items may be arranged, and $j$ possible choices for $J$.   This enumerates $j(j!)$ permutations.
+\end{enumerate}
+
+Therefore, at the $j+1$st step there are $(j+1)(j!) = (j+1)!$ equally likely permutations we could construct.
+\end{proof}
+\hyperlink{fykd}{\beamerbutton{back}}
+
+\end{frame}
+
+\begin{frame}[label = nonuniform-proof]
+\tiny
+\begin{proof}[Non-uniform random sampling probabilities]
+Define $Y = \lfloor mX \rfloor + 1$ and $\tilde{X}$ to be a uniform random integer on $\{0, 1, \dots, 2^w - 1\}$ (while $X$ has the same distribution scaled by $2^{-w}$).
+The selection probability for a particular integer value is 
+\begin{align*}
+\pr\left(Y = y\right) &= \pr\left(1 + \lfloor mX \rfloor = y\right) \\
+&= \pr\left(y-1 \leq mX < y\right) \\
+&= \pr\left(\tilde{X} < \frac{y2^w}{m}\right) - \pr\left(\tilde{X} < \frac{(y-1)2^w}{m}\right)\\
+&= \pr\left(\tilde{X} < \left\lceil\frac{y2^w}{m}\right\rceil\right) - \pr\left(\tilde{X} \leq \left\lceil\frac{(y-1)2^w}{m}\right\rceil\right)\\
+&= 2^{-w}\left(k^-(y)- k^-(y-1) + 1\right) = 2^{-w}\left(k^+(y-1)- k^-(y-1) \right)
+\end{align*}
+
+\noindent where, for fixed $m$, we define $k^-(i) \equiv \min \{k: k2^{-w} \geq i/m\}$ for all $i$,
+$k^+(i) \equiv \max \{k : k2^{-w} < i/m \} = k^-(i+1)-1$ for $i = 0, \dots, m-1$
+and $k^+(m) \equiv 2^w$.
+The maximum ratio of selection probabilities is 
+
+\begin{align*}
+\max_{i, j \in \{0, \ldots, m-1\}} \frac{k^+(i) - k^-(i)}{k^+(j) - k^-(j)}
+&= \frac{ \max_{i=0}^{m-1} (k^+(i) - k^-(i))}{\min_{i=0}^{m-1} (k^+(i) - k^-(i))} \\
+&= \frac{ \max_{i=0}^{m-1} (k^+(i) - k^+(i+1) + 1)}{\min_{i=0}^{m-1} (k^-(i+1) - k^-(i) -1)} \\
+&= \frac{\lceil 2^w/m \rceil + 1}{\lfloor 2^w/m \rfloor - 1} \\
+&= 1 + 2^{-w}m + ...
+\end{align*}
+
+\end{proof}
+\hyperlink{nonuniform-lemma}{\beamerbutton{back}}
+
+\end{frame}
+
+
+\begin{frame}\label{range_power}
+\frametitle{Power of the $\chi^2$ vs. Range test}
+
+Estimate the power for different $B$ (number of samples drawn) and $N$ (multinomial categories, $n \choose k$) under the following alternative hypothesis:
+\begin{itemize}
+\item All samples but two have probability $1/N$
+\item One sample has probability $0.95/N$, the other has probability $1.05/N$
+\item Reject the null hypothesis at level $1\%$
+\item Power is the observed rejection rate
+\end{itemize}
+
+\hyperlink{range_test}{\beamerbutton{back}}
+
+
+\includegraphics[width = \textwidth]{fig/powerplot.pdf}
+
+
+
+\end{frame}
+
+
+
+
+\begin{frame}\label{sha256_tests}
+
+
+\begin{table}[htdp]
+\caption{\large{$p$-values from selected tests on the SHA256 PRNG}}
+\begin{tabular}{|r|r|c|c|c|c|c|c|}
+\hline
+Seed & Samples & $\chi^2$ & Range & KS & KS Diffs & Gaps \\
+\hline
+100	& $1e4$ & 0.295  & 0.797  & 0.630 & 0.748 & 0.964 \\
+100	& $5.6e5$ & 0.814 & 0.183 & 0.863 & 0.623 & 0.090  \\
+100	& $1e6$ & 0.805 & 0.516 & 0.816 & 0.833 & 0.103 \\
+\hline
+233424280 & $1e4$ & 0.245 & 0.543 & 0.066 & 0.573 & 0.217 \\
+233424280 & $5.6e5$ & 0.232 & \textbf{0.006} & 0.788 & 0.982 & 0.476 \\
+233424280 & $1e6$ & 0.210  & 0.857 & 0.561 & 0.988 & 0.544 \\
+\hline
+429496729 & $1e4$ & 0.914 & 0.952 & \textbf{0.019} & 0.869 & 0.882 \\
+429496729 & $5.6e5$ & 0.461 & 0.674 & 0.348 & 0.820 & 0.145 \\
+429496729 & $1e6$ & 0.781 & 0.906 & 0.714 & 0.393 & 0.222\\
+\hline
+\end{tabular}
+\label{default}
+\end{table}%
+
+\small See \url{https://github.com/kellieotto/prng-slides/blob/master/code/sha256-tests.ipynb} for details.
+
+\hyperlink{sha256_procedure}{\beamerbutton{back}}
+
+\end{frame}
+
+
+
+\begin{frame}
+\frametitle{References}
+\tiny
+\bibliographystyle{plainnat}
+\bibliography{refs}
+\itemize
+\end{frame}
+
+
+\end{document}
