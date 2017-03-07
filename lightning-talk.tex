@@ -3,6 +3,9 @@
 \usepackage{beamerthemesplit}
 \usepackage{graphicx}
 \usepackage{color, natbib, hyperref}
+\usepackage{multirow}
+\usepackage{,array}
+\newcolumntype{L}{>{\centering\arraybackslash}m{2.5cm}}
 \usepackage{bibentry}
 \nobibliography*
 
@@ -157,8 +160,8 @@
 \section[Introduction]{Introduction}
 
 \frame{
-\frametitle{Simple Random Sampling}
-\textbf{Simple random sampling:} drawing $k$ objects from a group of $n$ in such a way that all $n\choose k$ possible subsets are equally likely. \\
+%\frametitle{Simple Random Sampling}
+\textbf{Simple random sampling} lies at the heart of many statistical methods.
 \vspace{20pt}
 
 In practice, it is difficult to draw truly random samples.
@@ -177,7 +180,7 @@ Instead, people tend to draw samples using
 
 \frame
 {
-  \frametitle{PRNGs}
+%  \frametitle{PRNGs}
   
   \textbf{Pseudorandom number generator:} a deterministic algorithm that produces sequences that are computationally indistinguishable from the uniform distribution
   \vspace{20pt}
@@ -201,11 +204,11 @@ Instead, people tend to draw samples using
 
 }
 \frame{
-\frametitle{Pigeons and Pigeonholes}
+%\frametitle{Pigeons and Pigeonholes}
 
-\begin{theorem}[Pigeonhole Principle]
-If there are $n$ pigeonholes and $m>n$ pigeons, then there exists at least one pigeonhole containing more than one pigeon.
-\end{theorem}
+%\begin{theorem}[Pigeonhole Principle]
+%If there are $n$ pigeonholes and $m>n$ pigeons, then there exists at least one pigeonhole containing more than one pigeon.
+%\end{theorem}
 \begin{figure}[htbp]
 \begin{center}
 \includegraphics[width = .3\textwidth]{fig/TooManyPigeons.jpg}
@@ -213,58 +216,91 @@ If there are $n$ pigeonholes and $m>n$ pigeons, then there exists at least one p
 \tiny \href{https://commons.wikimedia.org/w/index.php?curid=4658682}{(Wikipedia)}
 \end{figure}
 
-\pause
-\begin{corollary}[Too few pigeons]
-If ${n \choose k}$ is greater than the size of a PRNG's state space, then the PRNG cannot possibly generate all samples of size $k$ from a population of $n$.
+\begin{corollary}[Fewer pigeons than pigeonholes]
+If the number of possible samples is greater than the size of a PRNG's state space, then the PRNG cannot possibly generate all samples.
 \end{corollary}
 }
 
 \frame{
-\frametitle{Pigeons and Pigeonholes}
+%\frametitle{Pigeons and Pigeonholes}
 
-Does it matter in practice? 
-\pause
+{\Large Does it matter in practice? }
+%\pause
+%
+%\vspace{20pt}
+%
+%Period of 32-bit linear congruential generators (e.g. RANDU): $2^{32} \approx 4 \times 10^9$ \\
+%Samples of size $10$ from $50$: ${50 \choose 10} \approx 10^{10}$ \\
+%\textbf{More than half of samples cannot be generated}
+%\vspace{20pt}
+%\pause
+%
+%Period of Mersenne Twister (standard PRNG in Statistics): $2^{32 \times 624} \approx 2 \times 10^{6010}$ \\
+%Permutations of $2084$ objects: $2084! \approx 3 \times 10^{6013}$\\
+%\textbf{Less than $0.01\%$ of permutations can be generated}
 
-\vspace{20pt}
 
-Period of 32-bit linear congruential generators (e.g. RANDU): $2^{32} \approx 4 \times 10^9$ \\
-Samples of size $10$ from $50$: ${50 \choose 10} \approx 10^{10}$ \\
-\textbf{More than half of samples cannot be generated}
-\vspace{20pt}
-\pause
+\begin{center}
+\begin{table}[htdp]
+\begin{tabular}{LLLL}
+PRNG & \# Internal states & \# Possibilities & Proportion of attainable possibilities \\
+\hline
+32-bit linear congruential generators & 4 billion & Samples of 10 out of 50 items $\approx 10$ billion & $0.4$ \\
+\hline
+Mersenne Twister & $\approx 2 \times 10^{6010}$ & Permutations of $2084$ items $\approx 3 \times 10^{6013}$ & $0.0001$
+\end{tabular}
+\end{table}%
+\end{center}
 
-Period of Mersenne Twister (standard PRNG in Statistics): $2^{32 \times 624} \approx 2 \times 10^{6010}$ \\
-Permutations of $2084$ objects: $2084! \approx 3 \times 10^{6013}$\\
-\textbf{Less than $0.01\%$ of permutations can be generated}
-
+%
+%\begin{table}[htdp]
+%\begin{center}
+%\begin{tabular}{L|LL}
+%PRNG & 32-bit linear congruential generators & Mersenne Twister\\
+%\hline
+% \# Internal states &4 billion &$\approx 2 \times 10^{6010}$\\
+%\hline
+% \# Desired samples &  Samples of 10 out of 50  $=$10 billion & Permutations of $2084$ objects $\approx 3 \times 10^{6013}$ \\
+%\hline
+% Ratio & $0.4$ &$0.0001$
+%\end{tabular}
+%\end{center}
+%\label{default}
+%\end{table}%
 
 }
 
 
 
 \frame{
-\frametitle{The good, the bad, and the ugly}
-\begin{block}{(Knuth, 1997)}
-``Random numbers should not be generated with a method chosen at random.''
-\end{block}
-\pause
+%\frametitle{The good, the bad, and the ugly}
+
+
+
+{\Large Even if a PRNG can generate all possible samples, it may not be sufficiently random. }
+
+
+\vspace{20pt}
 
 
 \begin{figure}[htbp]
 \begin{center}
-\includegraphics[width = 0.4\textwidth]{fig/randu.png}
-\end{center}
-     Triples of RANDU lie on 15 planes in 3D space \\ 
-     $x_{n+1} = (65539 x_{n}) \mod 2^{31}$ \\
+\includegraphics[width = 0.4\textwidth]{fig/randu.png} \\
 \footnotesize{(Wikipedia)}
+\end{center}
+
+\vspace{20pt}
+     $x_{n+1} = (65539 x_{n}) \mod 2^{31}$ \\
+\vspace{10pt}
+        {Triples of RANDU lie on 15 planes in 3D space.}
 \end{figure}
 }
 
 
 \frame{
-\frametitle{A better alternative}
+%\frametitle{A better alternative}
 
-\textbf{One solution:} Find a class of PRNGs with infinite state space
+\textbf{One solution:} Find a class of PRNGs with infinite state space \textbf{and} good pseudorandom behavior
 
 
 \begin{center}
@@ -318,12 +354,12 @@ Cryptographic hash functions:
 
 
 \frame{
-\frametitle{SHA256 in practice}
+%\frametitle{SHA256 in practice}
 
 
 \begin{itemize}
 \itemsep10pt
-\item Preliminary results: SHA256 PRNG produces samples with equal probabilities while other common PRNGs don't
+\item Preliminary results: SHA-256 hash function PRNG produces samples with equal probabilities while other common PRNGs don't
 \item Replace the default PRNGs in Python
 \url{https://www.github.com/statlab/cryptorandom}
 \item Results apply more broadly to computer simulations: permutation tests, bootstrapping, MCMC, etc.
